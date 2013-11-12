@@ -9,6 +9,10 @@ import circuitd_pb2 as pb
 zookeeper = KazooClient(hosts='localhost:2181')
 zookeeper.start()
 
+# initialize the root directory
+if not zookeeper.exists('/circuit'):
+    zookeeper.create('/circuit')
+
 def new_authenticator():
     return randint(0, 2**63)
 
@@ -24,8 +28,10 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
         if (is_valid_client(cr.client_id)):
             authenticator = new_authenticator()
             transaction = zookeeper.transaction()
+            if not zookeeper.exists('/circuit/{0}'.format(authenticator)):
+                transaction.create('/circuit/{0}'.format(authenticator), b'{0}'.format(cr.client_id))
             transaction.create('/circuit/{0}/next_ip'.format(authenticator), b'{0}'.format(cr.next_hop_ip))
-            transaction.create('/circuit/{0}/next_auth'.format(authenticator, b'{0}'.format(cr.next_hop_authenticator)))
+            transaction.create('/circuit/{0}/next_auth'.format(authenticator), b'{0}'.format(cr.next_hop_authenticator))
             transaction.commit()
             response = pb.CircuitCreated()
             response.request.CopyFrom(cr)

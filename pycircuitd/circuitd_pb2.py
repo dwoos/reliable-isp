@@ -13,7 +13,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='circuitd.proto',
   package='circuitd',
-  serialized_pb='\n\x0e\x63ircuitd.proto\x12\x08\x63ircuitd\"W\n\rCreateCircuit\x12\x11\n\tclient_id\x18\x01 \x02(\x04\x12\x13\n\x0bnext_hop_ip\x18\x02 \x02(\r\x12\x1e\n\x16next_hop_authenticator\x18\x03 \x02(\x04\"Q\n\x0e\x43ircuitCreated\x12(\n\x07request\x18\x01 \x02(\x0b\x32\x17.circuitd.CreateCircuit\x12\x15\n\rauthenticator\x18\x02 \x02(\x03')
+  serialized_pb='\n\x0e\x63ircuitd.proto\x12\x08\x63ircuitd\"W\n\rCreateCircuit\x12\x11\n\tclient_id\x18\x01 \x02(\x04\x12\x13\n\x0bnext_hop_ip\x18\x02 \x03(\r\x12\x1e\n\x16next_hop_authenticator\x18\x03 \x02(\x04\"Q\n\x0e\x43ircuitCreated\x12(\n\x07request\x18\x01 \x02(\x0b\x32\x17.circuitd.CreateCircuit\x12\x15\n\rauthenticator\x18\x02 \x02(\x03')
 
 
 
@@ -34,8 +34,8 @@ _CREATECIRCUIT = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='next_hop_ip', full_name='circuitd.CreateCircuit.next_hop_ip', index=1,
-      number=2, type=13, cpp_type=3, label=2,
-      has_default_value=False, default_value=0,
+      number=2, type=13, cpp_type=3, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),

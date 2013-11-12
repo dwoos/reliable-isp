@@ -2,7 +2,7 @@ package circuitd;
 
 message CreateCircuit {
   required uint64 client_id = 1;
-  required uint32 next_hop_ip = 2;
+  repeated uint32 next_hop_ip = 2;
   required uint64 next_hop_authenticator = 3;
 }
 

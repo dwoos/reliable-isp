@@ -8,7 +8,8 @@ sock.connect((HOST, PORT))
 
 cc = pb.CreateCircuit()
 cc.client_id = 2
-cc.next_hop_ip = 10
+cc.next_hop_ip.append(10)
+cc.next_hop_ip.append(11)
 cc.next_hop_authenticator = 5
 
 sock.send(cc.SerializeToString())

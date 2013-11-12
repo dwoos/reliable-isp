@@ -30,7 +30,8 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
             transaction = zookeeper.transaction()
             if not zookeeper.exists('/circuit/{0}'.format(authenticator)):
                 transaction.create('/circuit/{0}'.format(authenticator), b'{0}'.format(cr.client_id))
-            transaction.create('/circuit/{0}/next_ip'.format(authenticator), b'{0}'.format(cr.next_hop_ip))
+            transaction.create('/circuit/{0}/next_ip'.format(authenticator), b'{0}'.format(cr.next_hop_ip[0]))
+            transaction.create('/circuit/{0}/next_ips'.format(authenticator), b'{0}'.format(','.join(map(str, cr.next_hop_ip))))
             transaction.create('/circuit/{0}/next_auth'.format(authenticator), b'{0}'.format(cr.next_hop_authenticator))
             transaction.commit()
             response = pb.CircuitCreated()

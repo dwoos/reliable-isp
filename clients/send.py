@@ -3,6 +3,7 @@
 import sys
 import socket
 
+# first hop information
 authenticator = sys.argv[1]
 ip = sys.argv[2]
 message = sys.argv[3:]

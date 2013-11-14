@@ -1,0 +1,27 @@
+package messages;
+
+message CreateCircuit {
+  required uint64 client_id = 1;
+  repeated string next_hop_ip = 2;
+  optional uint64 next_hop_authenticator = 3;
+}
+
+message CircuitCreated {
+  required CreateCircuit request = 1;
+  required int64 authenticator = 2;
+  repeated string ip = 3;
+}
+
+message CheckFailover {
+  required uint64 authenticator = 1;
+  required bool should_forward = 2;
+}
+
+message CheckFailoverAcknowledge {
+  required CheckFailover request = 1;
+}
+
+message FailoverComplete {
+  required CheckFailover request = 2;
+  required bool success = 1;
+}

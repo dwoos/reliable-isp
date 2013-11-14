@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
 import sys
+import json
 import SocketServer
 from random import randint
 from kazoo.client import KazooClient
-import circuitd_pb2 as pb
+import messages_pb2 as pb
 
-zookeeper = KazooClient(hosts='localhost:2181')
+config = json.loads(open(sys.argv[1]).read())
+
+zookeeper = KazooClient(hosts=','.join(config['zookeeper']))
 zookeeper.start()
 
 # initialize the root directory
@@ -21,23 +24,28 @@ def is_valid_client(client_id):
 
 class CircuitHandler(SocketServer.BaseRequestHandler):
     def handle(self):
+        print 'Creating circuit'
         # self.request is the client connection
         data = self.request.recv(1024)  # clip input at 1Kb
         cr = pb.CreateCircuit()
         cr.ParseFromString(data)
+        print cr
         if (is_valid_client(cr.client_id)):
             authenticator = new_authenticator()
             transaction = zookeeper.transaction()
             if not zookeeper.exists('/circuit/{0}'.format(authenticator)):
                 transaction.create('/circuit/{0}'.format(authenticator), b'{0}'.format(cr.client_id))
             transaction.create('/circuit/{0}/next_ip'.format(authenticator), b'{0}'.format(cr.next_hop_ip[0]))
-            transaction.create('/circuit/{0}/next_ips'.format(authenticator), b'{0}'.format(','.join(map(str, cr.next_hop_ip))))
+            transaction.create('/circuit/{0}/next_ips'.format(authenticator), b'{0}'.format(','.join(cr.next_hop_ip)))
             transaction.create('/circuit/{0}/next_auth'.format(authenticator), b'{0}'.format(cr.next_hop_authenticator))
             transaction.commit()
             response = pb.CircuitCreated()
             response.request.CopyFrom(cr)
             response.authenticator = authenticator
+            for ip in config['ips']:
+                response.ip.append(ip)
             self.request.send(response.SerializeToString())
+        print "circuit created"
         self.request.close()
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -50,7 +58,8 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == "__main__":
-    server = SimpleServer((sys.argv[1], int(sys.argv[2])), CircuitHandler)
+    print "Starting circuit server"
+    server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)
     # terminate with Ctrl-C
     try:
         server.serve_forever()

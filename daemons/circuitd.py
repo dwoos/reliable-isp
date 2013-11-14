@@ -7,12 +7,15 @@ from random import randint
 from kazoo.client import KazooClient
 import messages_pb2 as pb
 
+# load local isp zookeeper server ips
+# load local isp PoP ips
 config = json.loads(open(sys.argv[1]).read())
 
+# open zookeeper client connection
 zookeeper = KazooClient(hosts=','.join(config['zookeeper']))
 zookeeper.start()
 
-# initialize the root directory
+# initialize the circuit state root directory in zookeeper
 if not zookeeper.exists('/circuit'):
     zookeeper.create('/circuit')
 
@@ -31,6 +34,8 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
         cr.ParseFromString(data)
         print cr
         if (is_valid_client(cr.client_id)):
+            
+            # store circuit state in zookeeper
             authenticator = new_authenticator()
             transaction = zookeeper.transaction()
             if not zookeeper.exists('/circuit/{0}'.format(authenticator)):
@@ -39,13 +44,23 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
             transaction.create('/circuit/{0}/next_ips'.format(authenticator), b'{0}'.format(','.join(cr.next_hop_ip)))
             transaction.create('/circuit/{0}/next_auth'.format(authenticator), b'{0}'.format(cr.next_hop_authenticator))
             transaction.commit()
+
+            # create response to client
             response = pb.CircuitCreated()
             response.request.CopyFrom(cr)
             response.authenticator = authenticator
+
+            # the transit isp can have multiple PoPs for establish circuit
             for ip in config['ips']:
                 response.ip.append(ip)
+
+            # send response to create circuit request from client
             self.request.send(response.SerializeToString())
-        print "circuit created"
+            
+            print "circuit created"
+        
+        else:
+            print "invalid client id"
         self.request.close()
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):

@@ -1,0 +1,8 @@
+{
+    "zookeeper": [
+        "localhost:2181"
+    ],
+    "ips": [
+        "localhost"
+    ]
+}

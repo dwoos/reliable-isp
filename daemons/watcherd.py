@@ -13,9 +13,11 @@ except socket.error:
 
 def get_local_service_table():
     servd_conn.write('s\r\n')
+    # put a delay in
+    servd_conn.read_some()
     servd_conn.write('h\r\n')
     all_service_lines = servd_conn.read_until('service table\n').split('\n')[3:-7]
-    all_service_entries = [filter(None, line.split('\n')) for line in all_service_lines]
+    all_service_entries = [filter(None, line.split(' ')) for line in all_service_lines]
     taas_entries = [entry for entry in all_service_entries if entry[-2] not in ('0', 'none')]
     return {entry[-2]: entry[-1] for entry in taas_entries}
 

@@ -5,7 +5,7 @@ from kazoo.recipe import watchers
 
 class CircuitStateWatcher():
     def __init__(self, zookeeperHosts='localhost:2181'):
-		# might need to handle exceptions here
+        # might need to handle exceptions here
 		# and try a list of zookeeper hosts
 		self.zookeeper = KazooClient(zookeeperHosts)
 		self.zookeeper.start()
@@ -29,11 +29,11 @@ class CircuitStateWatcher():
 		watchers.ChildrenWatch(self.zookeeper, '/circuit', self._circuitNodeWatcher)
 
 		for authenticator in authenticators:
-            # transaction guarantees that 
+            # transaction guarantees that
             # if /circuit/authenticator exists
             # then all three its children exist
 
-            # get 
+            # get
             # return type is a tuple
 			next_ip = self.zookeeper.get('/circuit/{0}/next_ip'.format(authenticator))
 			next_ips = self.zookeeper.get('/circuit/{0}/next_ips'.format(authenticator))

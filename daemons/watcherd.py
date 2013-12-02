@@ -1,6 +1,7 @@
 import sys
 import time
 import socket
+import subprocess
 from kazoo.client import KazooClient
 from kazoo.recipe import watchers
 from telnetlib import Telnet
@@ -20,6 +21,10 @@ def get_local_service_table():
     all_service_entries = [filter(None, line.split(' ')) for line in all_service_lines]
     taas_entries = [entry for entry in all_service_entries if entry[-2] not in ('0', 'none')]
     return {entry[-2]: entry[-1] for entry in taas_entries}
+
+def register_service(auth, ip_addr):
+    return subprocess.call(['/root/taas/src/tools/servicetool', 'add', auth,
+                            ip_addr, 'taas', auth])
 
 
 class CircuitStateWatcher():

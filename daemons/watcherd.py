@@ -23,8 +23,8 @@ def get_local_service_table():
     return {entry[-2]: entry[-1] for entry in taas_entries}
 
 def register_service(auth, ip_addr):
-    return subprocess.call(['/root/taas/src/tools/servicetool', 'add', auth,
-                            ip_addr, 'taas', auth])
+    return subprocess.call(['/home/qiao/taas/src/tools/servicetool', 'add', str(auth),
+                            str(ip_addr), 'taas', str(auth)])
 
 
 class CircuitStateWatcher():
@@ -38,19 +38,20 @@ class CircuitStateWatcher():
 		self.circuitStates = {}
 		self._getCircuitState()
 
+		# set watcher on root node
+		watchers.ChildrenWatch(self.zookeeper, '/circuit', self._circuitNodeWatcher)
+
+
     def _getCircuitState(self):
 		# check if zookeeper circuit state node initialized
 		if not self.zookeeper.exists('/circuit'):
 			print 'no circuit has been established in zookeeper'
 			print 'initialize empty circuit state in zookeeper'
-			zookeeper.create('/circuit')
+			self.zookeeper.create('/circuit')
 
 
 		# get circuit states
 		authenticators = self.zookeeper.get_children('/circuit')
-
-		# set watcher on root node
-		watchers.ChildrenWatch(self.zookeeper, '/circuit', self._circuitNodeWatcher)
 
 		for authenticator in authenticators:
             # transaction guarantees that
@@ -64,9 +65,9 @@ class CircuitStateWatcher():
 			next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(authenticator))
 
 			# set watchers
-			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ip'.format(authenticator), self._nextIpWatcher)
-			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ips'.format(authenticator), self._nextIpsWatcher)
-			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_auth'.format(authenticator), self._nextAuthWatcher)
+			#watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ip'.format(authenticator), self._nextIpWatcher)
+			#watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ips'.format(authenticator), self._nextIpsWatcher)
+			#watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_auth'.format(authenticator), self._nextAuthWatcher)
 
 			self.circuitStates[authenticator] = dict([
 			                                        ('next_ip', next_ip[0]),
@@ -81,15 +82,25 @@ class CircuitStateWatcher():
     	print '/circuit children updates'
     	print 'children = ' + str(children)
 
+	# update the circuit state dictionary
+	self._getCircuitState()
+
+	# add to serval service table
+	for auth in self.circuitStates.keys():
+		next_ip = self.circuitStates[auth]['next_ip']
+		next_auth = self.circuitStates[auth]['next_auth']
+		register_service(next_auth, next_ip)
+
+
     def _nextIpWatcher(self, data, stat, event):
     	# data is the new data value
     	# stat is ZnodeStat
     	# event is WatchedEvent(type='CHANGED', state='CONNECTED', path=u'/circuit/(auth)/next_ip')
-        print 'next_ip has been changed in zookeeper'
+        # print 'next_ip has been changed in zookeeper'
         return
 
     def _nextIpsWatcher(self, data, stat, event):
-        print 'next_ips has been changed or created in zookeeper'
+        # print 'next_ips has been changed or created in zookeeper'
         return
 
     def _nextAuthWatcher(self, data, stat, event):
@@ -103,3 +114,4 @@ class CircuitStateWatcher():
 if __name__ == "__main__":
     circuitStateWatcher = CircuitStateWatcher()
     circuitStateWatcher.serverForever()
+    get_local_service_table()

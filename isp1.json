@@ -1,9 +1,8 @@
 {
     "zookeeper": [
-        "192.168.42.8:2181"
-    ],
-    "ips": [
-        "192.168.42.4",
-        "192.168.42.5"
-    ]
+        "node12.washington.vicci.org:2181"
+        ],
+        "ips": [
+            "node14.washington.vicci.org"
+            ]
 }

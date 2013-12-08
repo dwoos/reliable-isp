@@ -7,3 +7,4 @@ esac
 
 cd /reliable-isp
 nohup python daemons/circuitd.py $CONFIG &
+echo "started"

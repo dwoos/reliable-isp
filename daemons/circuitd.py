@@ -25,6 +25,10 @@ def new_authenticator():
 def is_valid_client(client_id):
     return True
 
+def get_my_ip():
+    import subprocess
+    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
+
 class CircuitHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         print 'Creating circuit'
@@ -34,7 +38,7 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
         cr.ParseFromString(data)
         print cr
         if (is_valid_client(cr.client_id)):
-            
+
             # store circuit state in zookeeper
             authenticator = new_authenticator()
             transaction = zookeeper.transaction()
@@ -56,9 +60,9 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
 
             # send response to create circuit request from client
             self.request.send(response.SerializeToString())
-            
+
             print "circuit created"
-        
+
         else:
             print "invalid client id"
         self.request.close()
@@ -74,7 +78,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     print "Starting circuit server"
-    server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)
+    server = SimpleServer((get_my_ip(), 3456), CircuitHandler)
     # terminate with Ctrl-C
     try:
         server.serve_forever()

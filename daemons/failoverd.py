@@ -16,6 +16,10 @@ config = json.loads(open(sys.argv[1]).read())
 zookeeper = KazooClient(hosts=','.join(config['zookeeper']))
 zookeeper.start()
 
+def get_my_ip():
+    import subprocess
+    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
+
 class FailoverHandler(SocketServer.BaseRequestHandler):
     def fail(self, req):
         fail = pb.FailoverComplete()
@@ -133,7 +137,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == "__main__":
-    server = SimpleServer(('0.0.0.0', 3457), FailoverHandler)
+    server = SimpleServer((get_my_ip(), 3457), FailoverHandler)
     # terminate with Ctrl-C
     try:
         print "gonna serve"

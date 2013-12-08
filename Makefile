@@ -1,4 +1,4 @@
-TAAS_DIR = /Users/Doug/notes/uw/cse552/taas
+TAAS_DIR = /taas
 
 clients/udp_taas_client:
 	gcc -I$(TAAS_DIR)/include -L$(TAAS_DIR)/src/libserval -lserval clients/trigger_failover.c clients/udp_taas_client.c -o clients/udp_taas_client

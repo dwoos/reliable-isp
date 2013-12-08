@@ -9,7 +9,7 @@ IP=$(curl -s http://ipecho.net/plain)
 
 cd /reliable-isp
 git pull
-/taas/src/stack/serval -s -a $IP -d
+/taas/src/stack/serval -s -a $IP -d -i eth0
 nohup python daemons/watcherd.py $CONFIG $IP > foo.out 2> foo.err < /dev/null &
 nohup python daemons/failoverd.py $CONFIG > foo.out 2> foo.err < /dev/null &
 echo "started"

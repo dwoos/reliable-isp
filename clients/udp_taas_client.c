@@ -66,7 +66,12 @@ int set_timeout(int s) {
         tv.tv_sec = failover_timeout;
         tv.tv_usec = 0;
 
-        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+        if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
+                       sizeof(struct timeval)) < 0) {
+                printf("set timeout failed\n");
+                return -1;
+        }
+        return 0;
 }
 
 int client(char *ip) {

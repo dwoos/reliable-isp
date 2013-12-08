@@ -29,35 +29,35 @@ def register_service(auth, ip_addr):
 
 
 # argv format to circuitc.py
-# python circuitc.py first_isp middle_isp last_isp the_other_endhost
+# python circuitc.py first_isp middle_isp last_isp the_other_endhost server_service_id
 
 # need to establish circuit in the REVERSE order
 # from the last isp to the first isp
 # in order to obtain the next_hop_authenticator
 ips = list(reversed(sys.argv[1:]))
 
-# get the_other_endhost ip
-# the_other_endhost has a single ip
-# but for transit segments, there can be multiple next_hop_ips
-next_hop_ips = [ips[0]]
-
-# get the ips for all transit isps in REVERSE order
-# starting from the_other_endhost side
-ips = ips[1:]
-
 # the_other_endhost doesn't need an authenticator
 # create circuit request will fill in the authenticator
 # for transit segments between isp hops
-next_hop_authenticator = None
+next_hop_authenticator = ips[0]
 
-# establish circuit from the last_isp backwards to client 
+# get the_other_endhost ip
+# the_other_endhost has a single ip
+# but for transit segments, there can be multiple next_hop_ips
+next_hop_ips = [ips[1]]
+
+# get the ips for all transit isps in REVERSE order
+# starting from the_other_endhost side
+ips = ips[2:]
+
+# establish circuit from the last_isp backwards to client
 for ip in ips:
     print ip
     print next_hop_ips
     cc = pb.CreateCircuit()
     cc.client_id = 2
     cc.next_hop_ip.extend(next_hop_ips)
-    # the previous create circuit request will have filled in the authenticator 
+    # the previous create circuit request will have filled in the authenticator
     if next_hop_authenticator:
         cc.next_hop_authenticator = next_hop_authenticator
 

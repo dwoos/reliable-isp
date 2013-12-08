@@ -1,4 +1,4 @@
-/* 
+/*
  * tcpclient.c - A simple TCP client
  * usage: tcpclient <host> <port>
  */
@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
-#include <netdb.h> 
+#include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -25,7 +25,7 @@
 #define CHECK_ACK_TIMEOUT 5
 #define CHECK_COMPLETE_TIMEOUT 10
 
-/* 
+/*
  * error - wrapper for perror
  */
 void error(char *msg) {
@@ -33,25 +33,14 @@ void error(char *msg) {
     exit(0);
 }
 
-int main(int argc, char **argv) {
-    int sockfd, portno, n;
-    uint64_t auth;
+int trigger_failover(char *hostname, int portno, unsigned long long auth) {
+    int sockfd, n;
     struct sockaddr_in serveraddr;
     struct hostent *server;
-    char *hostname;
-
-    /* check command line arguments */
-    if (argc != 4) {
-        fprintf(stderr,"usage: %s <hostname> <port> <auth> \n", argv[0]);
-        exit(0);
-    }
-    hostname = argv[1];
-    portno = atoi(argv[2]);
-    auth = strtoull(argv[3], (char **)NULL, 10);
 
     /* socket: create the socket */
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
+    if (sockfd < 0)
         error("ERROR opening socket");
 
     /* gethostbyname: get the server's DNS entry */
@@ -64,15 +53,15 @@ int main(int argc, char **argv) {
     /* build the server's Internet address */
     bzero((char *) &serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
+    bcopy((char *)server->h_addr,
             (char *)&serveraddr.sin_addr.s_addr, server->h_length);
     serveraddr.sin_port = htons(portno);
-    
+
     /* make connection non-blocking */
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
     /* connect: create a connection with the server */
-    n = connect(sockfd, &serveraddr, sizeof(serveraddr));
+    n = connect(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
 
     /* set timeout option in tcp connection */
     struct timeval tv;
@@ -149,7 +138,7 @@ int main(int argc, char **argv) {
     /* construct check failover acknowledgement */
     // Unpack the message using protobuf-c.
     Messages__CheckFailoverAcknowledge *ack_msg;
-    ack_msg = messages__check_failover_acknowledge__unpack(NULL, n, buf);   
+    ack_msg = messages__check_failover_acknowledge__unpack(NULL, n, buf);
     if (ack_msg == NULL) {
         fprintf(stderr, "error unpacking incoming ack message\n");
         exit(1);

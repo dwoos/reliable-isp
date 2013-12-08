@@ -29,7 +29,7 @@ def get_local_service_table():
     return {entry[-2]: entry[-1] for entry in taas_entries}
 
 def register_service(auth, ip_addr):
-    return subprocess.call(['/home/qiao/taas/src/tools/servicetool', 'add', str(auth),
+    return subprocess.call(['/taas/src/tools/servicetool', 'add', str(auth),
                             str(ip_addr), 'taas', str(auth)])
 
 

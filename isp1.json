@@ -1,8 +1,8 @@
 {
     "zookeeper": [
-        "node12.washington.vicci.org:2181"
+        "10.128.114.12:2181"
         ],
         "ips": [
-            "node14.washington.vicci.org"
+            "10.128.114.14"
             ]
 }

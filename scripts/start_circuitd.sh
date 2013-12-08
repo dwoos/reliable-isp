@@ -6,6 +6,5 @@ case $(hostname) in
 esac
 
 cd /reliable-isp
-nohup python daemons/circuitd.py $CONFIG &
+nohup python daemons/circuitd.py $CONFIG > foo.out 2> foo.err < /dev/null &
 echo "started"
-exit

@@ -28,9 +28,9 @@ def get_local_service_table():
     taas_entries = [entry for entry in all_service_entries if entry[-2] not in ('0', 'none')]
     return {entry[-2]: entry[-1] for entry in taas_entries}
 
-def register_service(auth, ip_addr):
+def register_service(auth, ip_addr, next_auth):
     return subprocess.call(['/taas/src/tools/servicetool', 'add', str(auth),
-                            str(ip_addr), 'taas', str(auth)])
+                            str(ip_addr), 'taas', str(next_auth)])
 
 
 class CircuitStateWatcher():
@@ -95,7 +95,7 @@ class CircuitStateWatcher():
 	for auth in self.circuitStates.keys():
 		next_ip = self.circuitStates[auth]['next_ip']
 		next_auth = self.circuitStates[auth]['next_auth']
-		register_service(next_auth, next_ip)
+		register_service(auth, next_ip, next_auth)
 
 
     def _nextIpWatcher(self, data, stat, event):

@@ -199,15 +199,15 @@ int main(int argc, char **argv)
         //sigaction(SIGTERM, &action, 0);
 	//sigaction(SIGHUP, &action, 0);
 	//sigaction(SIGINT, &action, 0);
-        if (argc != 7) {
-                printf("Usage: udp_taas_client local_ip local_port service_id isp taas failover_timeout\n");
+        if (argc != 6) {
+                printf("Usage: udp_taas_client local_ip local_port service_id isp failover_timeout\n");
                 exit(0);
         }
         local_ip = argv[1];
         local_port = atoi(argv[2]);
         service_id = atoi(argv[3]);
         isp = argv[4];
-        taas = atoll(argv[5]);
+        taas = service_id
         failover_timeout = atoi(argv[6]);
 
         ret = client(argv[1]);

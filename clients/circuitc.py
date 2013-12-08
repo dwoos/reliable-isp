@@ -39,7 +39,7 @@ ips = list(reversed(sys.argv[1:]))
 # the_other_endhost doesn't need an authenticator
 # create circuit request will fill in the authenticator
 # for transit segments between isp hops
-next_hop_authenticator = ips[0]
+next_hop_authenticator = int(ips[0])
 
 # get the_other_endhost ip
 # the_other_endhost has a single ip

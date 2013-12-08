@@ -7,6 +7,7 @@ esac
 
 cd /reliable-isp
 git pull
+/taas/src/stack/serval -s -a $(curl -s http://ipecho.net/plain)
 nohup python daemons/watcherd.py $CONFIG > foo.out 2> foo.err < /dev/null &
 nohup python daemons/failoverd.py $CONFIG > foo.out 2> foo.err < /dev/null &
 echo "started"

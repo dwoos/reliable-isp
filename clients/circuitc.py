@@ -82,4 +82,4 @@ for ip in ips:
 print next_hop_authenticator
 
 # populate the client's own Serval service table
-register_service(next_hop_authenticator, ips[-1])
+register_service(next_hop_authenticator, next_hop_ips[0])

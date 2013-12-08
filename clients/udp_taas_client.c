@@ -161,7 +161,15 @@ int client(char *ip) {
                 }
                 else if (ret < 0) {
                         printf("failover detected!\n");
+                        struct timeval t1, t2;
+                        double elapsed_time;
+                        gettimeofday(&t1, NULL);
                         trigger_failover(isp, FAILOVER_PORT, taas);
+                        gettimeofday(&t2, NULL);
+                        elapsed_time = (t2.tv_sec - t1.tv_sec) * 1000.0;
+                        elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
+                        printf("FAILOVER IN %f\n", elapsed_time);
+
                 }
                 else {
                         printf("Response from server: %s\n", rbuf);

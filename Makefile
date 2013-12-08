@@ -15,6 +15,6 @@ default: daemons/udp_taas_server clients/udp_taas_client protobufs
 
 clean:
 	rm clients/udp_taas_client
-	rm daemons/udp_taas_daemon
+	rm daemons/udp_taas_server
 
 .PHONY: default protobufs clean

@@ -1,6 +1,32 @@
 import sys
+import time
 import socket
+import subprocess
 import messages_pb2 as pb
+from kazoo.client import KazooClient
+from kazoo.recipe import watchers
+from telnetlib import Telnet
+
+try:
+    servd_conn = Telnet('localhost', 9999)
+    servd_conn.read_until('help\n')
+except socket.error:
+    print "Local servd not running, so we won't be able to get service info"
+
+def get_local_service_table():
+    servd_conn.write('s\r\n')
+    # put a delay in
+    servd_conn.read_some()
+    servd_conn.write('h\r\n')
+    all_service_lines = servd_conn.read_until('service table\n').split('\n')[3:-7]
+    all_service_entries = [filter(None, line.split(' ')) for line in all_service_lines]
+    taas_entries = [entry for entry in all_service_entries if entry[-2] not in ('0', 'none')]
+    return {entry[-2]: entry[-1] for entry in taas_entries}
+
+def register_service(auth, ip_addr):
+    return subprocess.call(['/taas/src/tools/servicetool', 'add', str(auth),
+                            str(ip_addr), 'taas', str(auth)])
+
 
 # argv format to circuitc.py
 # python circuitc.py first_isp middle_isp last_isp the_other_endhost
@@ -50,3 +76,6 @@ for ip in ips:
     next_hop_authenticator = ccr.authenticator
     next_hop_ips = ccr.ip
 print next_hop_authenticator
+
+# populate the client's own Serval service table
+register_service(next_hop_authenticator, ips[-1])

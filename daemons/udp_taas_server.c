@@ -55,7 +55,7 @@ int server(short sid)
                 return -1;
         }
 
-        printf("server: bound to service id %d\n", ECHO_SERVICE_ID);
+        printf("server: bound to service id %d\n", sid);
 
         listen_sv(sock, backlog);
 

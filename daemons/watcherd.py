@@ -6,8 +6,13 @@ from kazoo.client import KazooClient
 from kazoo.recipe import watchers
 from telnetlib import Telnet
 
+# load local isp zookeeper server ips
+# load local isp PoP ips
+config = json.loads(open(sys.argv[1]).read())
+
 try:
-    servd_conn = Telnet('localhost', 9999)
+    # use the ip addr of the eth interface Serval binds to
+    servd_conn = Telnet(sys.argv[2], 9999)
     servd_conn.read_until('help\n')
 except socket.error:
     print "Local servd not running, so we won't be able to get service info"
@@ -112,6 +117,6 @@ class CircuitStateWatcher():
             time.sleep(1)
 
 if __name__ == "__main__":
-    circuitStateWatcher = CircuitStateWatcher()
+    circuitStateWatcher = CircuitStateWatcher(','.join(config['zookeeper']))
     circuitStateWatcher.serverForever()
     get_local_service_table()

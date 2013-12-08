@@ -7,5 +7,6 @@ esac
 
 cd /reliable-isp
 git pull
-nohup python daemons/circuitd.py $CONFIG > foo.out 2> foo.err < /dev/null &
+nohup python daemons/watcherd.py $CONFIG > foo.out 2> foo.err < /dev/null &
+nohup python daemons/failoverd.py $CONFIG > foo.out 2> foo.err < /dev/null &
 echo "started"

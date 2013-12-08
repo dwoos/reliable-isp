@@ -20,7 +20,7 @@ if not zookeeper.exists('/circuit'):
     zookeeper.create('/circuit')
 
 def new_authenticator():
-    return randint(0, 2**63)
+    return randint(0, 2**31)
 
 def is_valid_client(client_id):
     return True

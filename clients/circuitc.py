@@ -7,8 +7,12 @@ from kazoo.client import KazooClient
 from kazoo.recipe import watchers
 from telnetlib import Telnet
 
+def get_my_ip():
+    import subprocess
+    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
+
 try:
-    servd_conn = Telnet('localhost', 9999)
+    servd_conn = Telnet(get_my_ip(), 9999)
     servd_conn.read_until('help\n')
 except socket.error:
     print "Local servd not running, so we won't be able to get service info"

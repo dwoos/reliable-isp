@@ -85,7 +85,7 @@ int server(short sid)
 
                         /* printf("server: waiting on client request\n"); */
 
-                        if ((n = recvfrom_sv(fd, buf, N, 0, (struct sockaddr *)&cliaddr, &l)) < 0) {
+                        if ((n = recvfrom_sv(sock, buf, N, 0, (struct sockaddr *)&cliaddr, &l)) < 0) {
                                 fprintf(stderr,
                                         "server: error receiving client request: %s\n",
                                         strerror_sv(errno));

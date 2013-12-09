@@ -28,19 +28,20 @@ int set_reuse_ok(int sock);
 
 int server(short sid)
 {
+        int backchannel_sock;
+
+        backchannel_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        set_reuse_ok(backchannel_sock);
+
+
         int sock, backlog = 8;;
         struct sockaddr_sv servaddr, cliaddr;
-        int backchannel_sock;
 
         if ((sock = socket_sv(AF_SERVAL, SOCK_DGRAM, SERVAL_PROTO_UDP)) < 0) {
                 fprintf(stderr, "error creating AF_SERVAL socket: %s\n",
                         strerror_sv(errno));
                 return -1;
         }
-
-        backchannel_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        set_reuse_ok(backchannel_sock);
-
         memset(&servaddr, 0, sizeof(servaddr));
         servaddr.sv_family = AF_SERVAL;
         servaddr.sv_srvid.s_sid32[0] = htonl(sid);
@@ -84,7 +85,7 @@ int server(short sid)
 
                         /* printf("server: waiting on client request\n"); */
 
-                        if ((n = recv_sv(fd, buf, N, 0)) < 0) {
+                        if ((n = recvfrom_sv(fd, buf, N, 0, (struct sockaddr *)&cliaddr, &l)) < 0) {
                                 fprintf(stderr,
                                         "server: error receiving client request: %s\n",
                                         strerror_sv(errno));

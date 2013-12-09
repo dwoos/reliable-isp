@@ -110,8 +110,9 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
                     continue
             # ok, we're out of ips. fail!
             return self.fail(req)
-        except:
+        except e:
             # some other error, bail
+            print e
             return self.fail(req)
         else:
             # wait for complete, then return to client

@@ -207,7 +207,7 @@ int main(int argc, char **argv)
         local_port = atoi(argv[2]);
         service_id = atoi(argv[3]);
         isp = argv[4];
-        taas = service_id
+        taas = service_id;
         failover_timeout = atoi(argv[6]);
 
         ret = client(argv[1]);

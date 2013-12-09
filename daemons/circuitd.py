@@ -6,6 +6,7 @@ import SocketServer
 from random import randint
 from kazoo.client import KazooClient
 import messages_pb2 as pb
+import subprocess
 
 # load local isp zookeeper server ips
 # load local isp PoP ips
@@ -26,7 +27,6 @@ def is_valid_client(client_id):
     return True
 
 def get_my_ip():
-    import subprocess
     return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
 
 class CircuitHandler(SocketServer.BaseRequestHandler):
@@ -78,7 +78,10 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     print "Starting circuit server"
-    server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)
+    if subprocess.check_output('hostname') == 'node14.washington.vicci.org':
+        server = SimpleServer(('10.128.114.14', 3456), CircuitHandler)
+    else:
+        server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)
     # terminate with Ctrl-C
     try:
         server.serve_forever()

@@ -19,6 +19,8 @@ except socket.error:
     print "Local servd not running, so we won't be able to get service info"
 
 def get_local_service_table():
+    # get a dictionary of
+    # (next auth : next ip)
     servd_conn.write('s\r\n')
     # put a delay in
     servd_conn.read_some()
@@ -98,11 +100,24 @@ class CircuitStateWatcher():
 		register_service(auth, next_ip, next_auth)
 
 
-    def _nextIpWatcher(self, data, stat, event):
-    	# data is the new data value
+    def _nextIpWatcher(self, new_next_ip, stat, event):
+    	# new_next_ip is the new data value
     	# stat is ZnodeStat
     	# event is WatchedEvent(type='CHANGED', state='CONNECTED', path=u'/circuit/(auth)/next_ip')
-        # print 'next_ip has been changed in zookeeper'
+        print 'next_ip has been changed in zookeeper'
+
+        # find out the auth and old_next_ip
+        current_service_table = self.get_local_service_table()
+        auth = event.path.split('/')[2]
+        next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(auth)) 
+        old_next_ip = current_service_table[next_auth]
+        
+        # delete the old service table entry
+        subprocess.call(['/taas/src/tools/servicetool', 'del', str(auth),
+                            str(old_next_ip), 'taas', str(next_auth)])
+
+        # fill in updated next_ip in service table
+        register_service(auth, new_next_ip, next_auth)
         return
 
     def _nextIpsWatcher(self, data, stat, event):

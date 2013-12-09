@@ -1,6 +1,5 @@
 case $(hostname) in
     node15.washington.vicci.org) CONFIG=isp1.json ;;
-    node16.washington.vicci.org) CONFIG=isp1.json ;;
     node17.washington.vicci.org) CONFIG=isp1.json ;;
 
     node18.washington.vicci.org) CONFIG=isp2.json ;;
@@ -13,7 +12,7 @@ case $(hostname) in
     *) exit ;;
 esac
 
-IP=$(curl -s http://ipecho.net/plain)
+IP=$(ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-)
 
 cd /reliable-isp
 git pull

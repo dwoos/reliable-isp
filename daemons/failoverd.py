@@ -137,7 +137,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == "__main__":
-    server = SimpleServer((get_my_ip(), 3457), FailoverHandler)
+    server = SimpleServer(('0.0.0.0', 3457), FailoverHandler)
     # terminate with Ctrl-C
     try:
         print "gonna serve"

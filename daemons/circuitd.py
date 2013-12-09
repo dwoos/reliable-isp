@@ -78,7 +78,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     print "Starting circuit server"
-    server = SimpleServer((get_my_ip(), 3456), CircuitHandler)
+    server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)
     # terminate with Ctrl-C
     try:
         server.serve_forever()

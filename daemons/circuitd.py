@@ -78,7 +78,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     print "Starting circuit server"
-    if subprocess.check_output('hostname') == 'node14.washington.vicci.org':
+    if subprocess.check_output(['hostname']).strip() == 'node14.washington.vicci.org':
         server = SimpleServer(('10.128.114.14', 3456), CircuitHandler)
     else:
         server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)

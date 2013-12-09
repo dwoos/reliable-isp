@@ -102,7 +102,6 @@ int server(short sid)
                         }
                         k++;
                 } while (1);
-                close_sv(fd);
                 printf("Server listening for NEW connections\n");
         } while (1);
         close_sv(sock);

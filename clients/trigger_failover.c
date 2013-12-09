@@ -88,13 +88,12 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
     /* construct check failover message */
     Messages__CheckFailover check_msg = MESSAGES__CHECK_FAILOVER__INIT; // CheckFailover
-    void *buf;                     // Buffer to store serialized data
+    char buf_backing[1000000];
+    void *buf = buf_backing;
 
     check_msg.authenticator = auth;
     check_msg.should_forward = 1;
-    unsigned len = messages__check_failover__get_packed_size(&check_msg);
 
-    buf = malloc(len);
     messages__check_failover__pack(&check_msg,buf);
 
     /* send check message */

@@ -27,7 +27,8 @@ def is_valid_client(client_id):
     return True
 
 def get_my_ip():
-    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
+    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
+                                   shell=True).strip()
 
 class CircuitHandler(SocketServer.BaseRequestHandler):
     def handle(self):
@@ -78,10 +79,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     print "Starting circuit server"
-    if subprocess.check_output(['hostname']).strip() == 'node14.washington.vicci.org':
-        server = SimpleServer(('10.128.114.14', 3456), CircuitHandler)
-    else:
-        server = SimpleServer(('0.0.0.0', 3456), CircuitHandler)
+    server = SimpleServer((get_my_ip(), 3456), CircuitHandler)
     # terminate with Ctrl-C
     try:
         server.serve_forever()

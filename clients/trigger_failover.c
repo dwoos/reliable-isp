@@ -82,7 +82,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
             printf("Connected to %s:%d for failover protocol\n", hostname, portno);
         } else {
             fprintf(stderr, "connection error, failover at first isp");
-            exit(1);
+            return 1;
         }
     }
 
@@ -111,7 +111,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
             printf("check message sent\n");
         } else {
             fprintf(stderr, "fail to send check message; failover at first isp");
-            exit(1);
+            return 1;
         }
     }
 
@@ -131,7 +131,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
             printf("ack received\n");
         } else {
             fprintf(stderr, "fail to receive ack; failover at first isp");
-            exit(1);
+            return 1;
         }
     }
 
@@ -141,7 +141,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
     ack_msg = messages__check_failover_acknowledge__unpack(NULL, n, buf);
     if (ack_msg == NULL) {
         fprintf(stderr, "error unpacking incoming ack message\n");
-        exit(1);
+        return 1;
     }
 
     // failover ack message
@@ -150,7 +150,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in acknowledge message authenticator");
-        exit(1);
+        return 1;
     }
 
     // free the ack message
@@ -173,7 +173,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
             printf("complete received\n");
         } else {
             fprintf(stderr, "fail to receive complete; failover fail");
-            exit(1);
+            return 1;
         }
     }
 
@@ -184,7 +184,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
     complete_msg = messages__failover_complete__unpack(NULL, n, buf);
     if (complete_msg == NULL) {
         fprintf(stderr, "error unpacking incoming complete message\n");
-        exit(1);
+        return 1;
     }
 
     // failover complete message
@@ -193,7 +193,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in complete message authenticator");
-        exit(1);
+        return 1;
     }
 
     if (complete_msg->success) {

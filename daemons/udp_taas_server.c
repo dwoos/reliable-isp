@@ -63,21 +63,6 @@ int server(short sid)
         do {
                 socklen_t l = sizeof(cliaddr);
                 int k = 0;
-
-                printf("calling accept\n");
-
-                int fd = accept_sv(sock, (struct sockaddr *)&cliaddr, &l);
-
-                if (fd < 0) {
-                        fprintf(stderr, "error accepting new conn %s\n",
-                                strerror_sv(errno));
-                        return -1;
-                }
-
-                printf("server: recv conn from service id %s; got fd = %d\n",
-                       service_id_to_str(&cliaddr.sv_srvid), fd);
-
-
                 do {
                         unsigned N = 2000;
                         char buf[N];

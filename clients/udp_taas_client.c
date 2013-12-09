@@ -127,18 +127,6 @@ int client(char *ip) {
                         strerror_sv(errno));
 		return -1;
 	}
-
-
-        ret = connect_sv(sock, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
-
-	if (ret < 0) {
-		fprintf(stderr, "connect: %s\n",
-			strerror_sv(errno));
-		return -1;
-	}
-
-	printf("connected\n");
-
 	while (1) {
                 sprintf(sbuf, "ping %s %d", ip, local_port);
 		printf("client: sending \"%s\" to service ID %s\n",

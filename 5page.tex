@@ -40,19 +40,19 @@ egress PoP. Examples of the guarantees the ISP could provide include
 promises about uptime, bandwidth, and latency; for instance, Reliable
 Transit Inc. might promise the client 100 Mb/s from PoP A to PoP B
 with 99.999\% (five nines) uptime, with a latency between 50 and 100
-ms. The client is then responsible for stitching together a route
+milliseconds. The client is then responsible for stitching together a route
 between such ISPs.
 
 Our goal is to implement an ISP that is capable of making such
-promises to clients and reliably routing traffic according to the SLA. Clients can
-communicate with the ISP on the control plane and the data plane. The
-control plane is used to create a contract with the ISP; a client
-requests a route from PoP A to PoP B and the ISP responds with a token
-that the client can attach to packets so that the ISP knows to send
-them along that route. The data plane is used to forward the
-packets. If a packet arrives at the ingress PoP with a token the ISP
-recognizes, the ISP is responsible for routing that token to the
-egress PoP.
+promises to clients and reliably routing traffic according to a
+service level agreement (SLA). Clients can communicate with the ISP on
+the control plane and the data plane. The control plane is used to
+create a contract with the ISP; a client requests a route from PoP A
+to PoP B and the ISP responds with a token that the client can attach
+to packets so that the ISP knows to send them along that route. The
+data plane is used to forward the packets. If a packet arrives at the
+ingress PoP with a token the ISP recognizes, the ISP is responsible
+for routing that token to the egress PoP.
 
 The primary challenge in implementing such an ISP is
 fault-tolerance. Traditional ISPs are configured using the BGP
@@ -83,20 +83,20 @@ Our primary contributions are:
 Our work is an implementation of the model presented in the Transit as
 a Service (TaaS) paper \cite{taas}. In the TaaS model, there are two
 types of principals: end-hosts and ISPs. When end-host \texttt{A}
-wants to establish a circuit to end-host \texttt{B}, it uses an internet
-atlas service such as iPlane \cite{iplane} to find a route to
+wants to establish a circuit to end-host \texttt{B}, it uses an
+Internet atlas service such as iPlane \cite{iplane} to find a route to
 \texttt{B} which goes through one or more TaaS-supporting ISPs. It
 then contacts these ISPs individually and purchases service from each
-of them. This service comes with a service level agreement (SLA) which can
-provide guarantees about latency, bandwidth, uptime, and even
-security. Once the client has purchased service from each ISP on the
-route, it can send traffic through the newly-established circuit and
-be confident that its traffic will be delivered consistently and in a
-timely fashion. The TaaS paper provided a simulation of traffic
-flowing through reliable ISPs, but did not actually implement such an
-ISP. Our contribution is to provide a working, proof-of-concept
-implementation of a reliable TaaS-supporting ISP, and to show that it
-is possible to get adequate performance and reliability.
+of them. This service comes with an SLA which can provide guarantees
+about latency, bandwidth, uptime, and even security. Once the client
+has purchased service from each ISP on the route, it can send traffic
+through the newly-established circuit and be confident that its
+traffic will be delivered consistently and in a timely fashion. The
+TaaS paper provided a simulation of traffic flowing through reliable
+ISPs, but did not actually implement such an ISP. Our contribution is
+to provide a working, proof-of-concept implementation of a reliable
+TaaS-supporting ISP, and to show that it is possible to get adequate
+performance and reliability.
 
 The problem TaaS seeks to solve---the poor reliability and security of
 current inter-domain routing technologies---is quite apparent, and
@@ -113,7 +113,7 @@ services.
 Another area of related work is in Software Defined
 Networking. Systems like Frenetic \cite{frenetic} allow users to
 dynamically configure switches and define routes through the network
-dynamically. TaaS provides a similar flexibility for the internet as a
+dynamically. TaaS provides a similar flexibility for the Internet as a
 whole; clients can view each ISP as a switch, which will reliably
 route traffic from one location to another. By stitching together a
 series of these ISPs, a client can be confident that its packets will
@@ -141,12 +141,12 @@ a TaaS-supporting ISP through an iPlane-like service (for this
 project, we assume that this is available and therefore will not
 implement it). Each ISP PoP has controllers that receive requests from
 clients to establish intra-domain circuits. On receiving a
-createCircuit request (C1 in Figure \ref{fig:diagram}), the
+\texttt{createCircuit} request (C1 in Figure \ref{fig:diagram}), the
 controllers respond with a per-circuit-per-client authentication token
 (C2) to the client. The controllers subsequently update the forwarding
-tables of the edge nodes (C3) to add the new forwarding rules in there.
-The same sequence of events (C4, C5, C6) happen at every ISP in the
-circuit that the client contacts.
+tables of the edge nodes (C3) to add the new forwarding rules in
+there.  The same sequence of events (C4, C5, C6) happen at every ISP
+in the circuit that the client contacts.
 
 At the end of the circuit establishment phase, every ISP on the
 end-to-end path will have configured its data plane to have the
@@ -159,7 +159,7 @@ packet either has to carry all the tokens for every circuit along the
 path, or the token on the packet gets modified as it exits from one
 ISP and enter the next one. We adopt the second approach, and
 consequently, each ISP also needs to remember the token for the next
-path segment for another ISP. The createCircuit request from the
+path segment for another ISP. The \texttt{createCircuit} request from the
 client therefore needs to contain the token for the next path
 segment. The client thus needs to establish the whole path starting from
 the last path segment entering target ISP to the first path segment
@@ -196,10 +196,10 @@ Zookeeper\footnote{\url{http://zookeeper.apache.org/}}, an open-source
 distributed coordination service. It ensures that a majority of those
 designated nodes are aware of any given route through the system;
 thus, if a node fails, the client can send traffic through a different
-node. The main weakness of Paxos is its performance cost, but as these
-operations are restricted to the control plane, there is no need for
-them to be especially fast (clients will send data through the system
-far more often than they will request new routes).
+node. The main weakness of coordination operations is performance, but
+as these operations are restricted to the control plane, there is no
+need for them to be especially fast (clients will send data through
+the system far more often than they will request new routes).
 
 \subsection{Failover}
 
@@ -238,7 +238,7 @@ better job of determining whether its traffic is actually arriving at
 the server. Therefore, failover is a client-driven process. When the
 client detects a failover (i.e. it detects that its traffic is not
 successfully arriving at the server), it notifies the first ISP that
-it believes a problem has occured. If it does not receive an
+it believes a problem has occurred. If it does not receive an
 acknowledgment from the first ISP, it concludes that that is where the
 failure exists and fails over to another edge node in the same ISP. If
 the first ISP does receive the client's message, it first acknowledges
@@ -283,7 +283,7 @@ A Serval packet has an extra header (inside the IP header but wrapping
 the layer 3 header) which contains its destination service ID. When
 Serval sees an incoming packet, it looks up the packet's service ID in
 its local table. If it finds a demux rule, it places the packet on
-the corrsponding local socket's queue and notifies the application
+the corresponding local socket's queue and notifies the application
 which owns the socket. If it finds a forwarding rule, it forwards the
 packet on to the corresponding IP address.
 
@@ -325,7 +325,7 @@ used by another.
 \label{table:clientservice}
 \end{table}
 
-Serval has a system for ``translating'' IP traffic to serval traffic
+Serval has a system for ``translating'' IP traffic to Serval traffic
 so that both the client and server can use standard IP sockets and the
 intermediate nodes (ISP nodes in our case) can run
 Serval. Unfortunately, we were unable to get this system
@@ -339,7 +339,7 @@ will use to find its entry for the circuit.
 
 \section{Evaluation}
 
-We deploy our ISP PoPs on the VICCI testbed.
+We deploy our ISP PoPs on the VICCI test-bed.
 Ideally, we want each VICCI site to function
 as a PoP to simulate the geographical spread of ISP PoPs.
 However, due to uncooperative network interfaces on VICCI nodes,
@@ -439,16 +439,16 @@ clients can obtain guarantees for Quality of Service, bandwidth and
 other useful services that an ISP can provide.
 
 \section{Conclusion}
-Deficient interdomain routing protocols are responsible for many of
-the modern internet's fundamental reliability, performance, and
+Deficient inter-domain routing protocols are responsible for many of
+the modern Internet's fundamental reliability, performance, and
 security issues. When an end-host sends a packet out---a packet which
 might contain an email to a friend, crucial health monitoring data, or
 national secrets---the end-host has very little control over the path
-this packet will traverse through the internet before arriving (or
+this packet will traverse through the Internet before arriving (or
 not) at its intended destination. We seek to remedy this issue by
 allowing end-hosts to purchase service from reliable, fault-tolerant
 ISPs, stitching together a sequence of such ISPs to provide a
-reliable, secure, and fast path through the internet.
+reliable, secure, and fast path through the Internet.
 
 Our contribution is a working, proof-of-concept implementation of a
 reliable and fault-tolerant ISP, including protocols for circuit

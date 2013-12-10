@@ -200,6 +200,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
       //        printf("failover success\n");
     } else {
         printf("failover failed\n");
+        fflush(stdout);
     }
 
     // free complete message

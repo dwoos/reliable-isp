@@ -141,7 +141,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
                 return self.fail(req)
 
 
-class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class SimpleServer(SocketServer.ForkingMixIn, SocketServer.TCPServer):
     # Ctrl-C will cleanly kill all spawned threads
     daemon_threads = True
     # much faster rebinding

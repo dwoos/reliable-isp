@@ -163,7 +163,8 @@ int client(char *ip) {
                         break;
                 }
                 else if (ret < 0) {
-                        //printf("failover detected!\n");
+                        printf("failure detected!\n");
+                        fflush(stdout);
                         struct timeval t1, t2;
                         double elapsed_time;
                         gettimeofday(&t1, NULL);

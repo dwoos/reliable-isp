@@ -291,7 +291,7 @@ The second goal is to evaluate the fault-tolerance of our ISPs and test
 our failover protocols.
  Within each ISP, the state (the mapping from client token to the circuit the
 client purchased) maintained at each PoP needs to be resilient to
-failures. We arbitrarily shut down . We
+failures. We arbitrarily shut down the second ISP edge nodes. We
 then measure the performance metrics with respect to such failures. In
 the ideal case, if the failures are infrequent enough, we should
 expect to see little degradation in the performance. We will push the
@@ -330,8 +330,6 @@ is tens of seconds, in contrast to a failover time on the order of hours using B
 3) the variability of failover time also increases as the number of application sharing the path increases.
 
 We can conclude from our experiments that XXX.
-
-Here are a few limitations in our experimental setup: XXX
 
 \section{Future Work}
 Our three ISPs are all hosted on the UW VICCI cluster due to network interface issues with VICCI. We will need to conduct future experiments and find out if a more long haul network would significantly increase the failover time.

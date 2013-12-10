@@ -274,25 +274,24 @@ As a result, we have to deploy all three ISPs within a single VICCI cluster,
  the University of Washington (UW) cluster. The client and server are also deployed
  on the UW cluster.
 For each ISP PoP, we have
-1 nodes to be the control plane that establish circuits with clients
-and 3 nodes to be the Serval data plane that forwards
+one node to be the TAAS control plane that establish circuits with clients
+and three nodes to be the TAAS data plane that forwards
 traffic. The coordination service provided by Zookeeper is hosted
-at a separate node from control plane or data plane.
+at a separate node from control plane or data plane that maintains consistency
+in the circuit state within a PoP.
 
 There are two goals in our evaluation. The first goal is to establish
-the feasibility of stateful transformation in our ISP and evaluate the
-baseline performance of our ISP in the absence of failures. We will
-simulate the case where O(100) to O(1000) end-hosts establish circuits
-through our ISP, and we will measure various performance metrics of
-those transit circuits, e.g. bandwidth and latency. The performance
-numbers will be informative of the overhead of our implementation of
-the stateful transformation.
+the feasibility of stateful transformation in our ISPs. We 
+deploy our ISP infrastructures on VICCI nodes and have O(100)
+clients establish circuits through our ISPs. We use simple UDP clients
+and UDP echo servers to verify that our infrastructure can deliver packets
+using the path the clients established. 
 
-The second goal is to evaluate the fault-tolerance of our ISP. Within
-the ISP, the state (the mapping from client token to the circuit the
+The second goal is to evaluate the fault-tolerance of our ISPs and test
+our failover protocols.
+ Within each ISP, the state (the mapping from client token to the circuit the
 client purchased) maintained at each PoP needs to be resilient to
-failures. We model the failure of each PoP by a Poisson distribution,
-and randomly choose a PoP and shut down one of the its machines. We
+failures. We arbitrarily shut down . We
 then measure the performance metrics with respect to such failures. In
 the ideal case, if the failures are infrequent enough, we should
 expect to see little degradation in the performance. We will push the
@@ -333,6 +332,12 @@ is tens of seconds, in contrast to a failover time on the order of hours using B
 We can conclude from our experiments that XXX.
 
 Here are a few limitations in our experimental setup: XXX
+
+\section{Future Work}
+Our three ISPs are all hosted on the UW VICCI cluster due to network interface issues with VICCI. We will need to conduct future experiments and find out if a more long haul network would significantly increase the failover time.
+
+Despite the feasibility of executing failover, our infrastructure is not optimized for efficiency. The bottleneck in the failover time is due to the significant delays in having zookeeper propagating circuit states and updating the Serval service table on the data plane. We envision more fine-grained updates to the circuit states will significantly shorten the failover time.
+
 
 
 \bibliography{bibliography}

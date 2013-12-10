@@ -144,7 +144,7 @@ int client(char *ip) {
 	while (1) {
                 sprintf(sbuf, "ping %s %d", ip, local_port);
 		//printf("client: sending \"%s\" to service ID %s\n",
-                sbuf, service_id_to_str(&srvaddr.sv_srvid));
+                //sbuf, service_id_to_str(&srvaddr.sv_srvid));
 
                 ret = sendto_sv(sock, sbuf, strlen(sbuf), 0, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
 

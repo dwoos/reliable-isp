@@ -179,7 +179,8 @@ will request new routes).
 In our system, failures can potentially occur at several different
 levels:
 \begin{enumerate}
-
+\item blah
+\end{enumerate}
 
 
 Our system does not perform failure detection, since we believe that
@@ -214,14 +215,17 @@ new circuit.
 \section{Evaluation}
 
 The VICCI testbed consists of 4 clusters at US universities and 3
-clusters at international sites. We will thus use the VICCI testbed to
-implement the edge component of an ISP. 
+clusters at international sites. We thus use the VICCI testbed to
+implement ISP PoPs. 
 Ideally, each VICCI site will function
 as a PoP that the client can establish a circuit with and the PoPs
 have to maintain the circuit state. 
-However, due to deployment issues on VICCI relating to uncooperative network interface,
- we have to deploy all three ISPs on the University of Washington cluster.
-At each cluster/ISP PoP, we will have
+However, due to uncooperative network interfaces on VICCI nodes,
+Serval has problems delivering packets across ViCCI clusters. 
+As a result, we have to deploy all three ISPs within a single VICCI cluster,
+ the University of Washington (UW) cluster. The client and server are also deployed
+ on the UW cluster.
+For each ISP PoP, we have
 1 nodes to be the control plane that establish circuits with clients
 and 3 nodes to be the Serval data plane that forwards
 traffic. The coordination service provided by Zookeeper is hosted

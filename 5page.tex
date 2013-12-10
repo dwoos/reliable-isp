@@ -31,16 +31,17 @@ specific guarantees about packets it sends through that ISPs
 network. Specifically, the ISP agrees to deliver packets from one
 specific Point of Presence (PoP) to another. The ingress PoP could
 either be the client's location or that of some other ISP with which
-the client has negotiated a service contract; similarly, the egress PoP
-could be either the final destination for the client's traffic or some
-other ISP. The crucial point is that from the ISP's perspective, it
-\textbf{does not matter}. The contract it has made with the client
+the client has negotiated a service contract; similarly, the egress
+PoP could be either the final destination for the client's traffic or
+some other ISP. The crucial point is that from the ISP's perspective,
+it \textbf{does not matter}. The contract it has made with the client
 provides delivery guarantees only between the ingress PoP and the
 egress PoP. Examples of the guarantees the ISP could provide include
 promises about uptime, bandwidth, and latency; for instance, Reliable
 Transit Inc. might promise the client 100 Mb/s from PoP A to PoP B
-with 99.999\% (five nines) uptime, with a latency between 50 and 100 ms. The client
-is then responsible for stitching together a route between such ISPs.
+with 99.999\% (five nines) uptime, with a latency between 50 and 100
+ms. The client is then responsible for stitching together a route
+between such ISPs.
 
 Our goal is to implement an ISP that is capable of making such
 promises to clients and reliably routing traffic according to the SLA. Clients can
@@ -100,13 +101,14 @@ is possible to get adequate performance and reliability.
 The problem TaaS seeks to solve--the poor reliability and security of
 current inter-domain routing technologies--is quite apparent, and
 there have been many other attempts to improve the situation. Systems
-like Pathlet routing \cite{pathlet}, Icing \cite{icing}, and SCION
-\cite{scion} are similar to TaaS in that they give end-hosts more
-control over the path their packets will take. Each of these, however,
-involves a more fundamental redesign of the Internet than the small
-changes proposed by TaaS. TaaS can operate over existing connections
-and using existing protocols, only requiring changes at the edges of
-ISPs wishing to provide TaaS services.
+like Consensus routing \cite{consensus}, Pathlet routing
+\cite{pathlet}, Icing \cite{icing}, and SCION \cite{scion} are similar
+to TaaS in that they give end-hosts more control over the path their
+packets will take. Each of these, however, involves a more fundamental
+redesign of the Internet than the small changes proposed by TaaS. TaaS
+can operate over existing connections and using existing protocols,
+only requiring changes at the edges of ISPs wishing to provide TaaS
+services.
 
 Another area of related work is in Software Defined
 Networking. Systems like Frenetic \cite{frenetic} allow users to

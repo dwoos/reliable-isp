@@ -31,7 +31,7 @@ specific guarantees about packets it sends through that ISPs
 network. Specifically, the ISP agrees to deliver packets from one
 specific Point of Presence (PoP) to another. The ingress PoP could
 either be the client's location or that of some other ISP with which
-the client negotiated a service contract; similarly, the egress PoP
+the client has negotiated a service contract; similarly, the egress PoP
 could be either the final destination for the client's traffic or some
 other ISP. The crucial point is that from the ISP's perspective, it
 \textbf{does not matter}. The contract it has made with the client
@@ -39,36 +39,36 @@ provides delivery guarantees only between the ingress PoP and the
 egress PoP. Examples of the guarantees the ISP could provide include
 promises about uptime, bandwidth, and latency; for instance, Reliable
 Transit Inc. might promise the client 100 Mb/s from PoP A to PoP B
-with 5 9's of uptime, with a latency between 50 and 100 ms. The client
+with 99.999\% of uptime, with a latency between 50 and 100 ms. The client
 is then responsible for stitching together a route between such ISPs.
 
 Our goal is to implement an ISP that is capable of making such
-promises to clients and then reliably routing traffic. Clients can
+promises to clients and reliably routing traffic according to the SLA. Clients can
 communicate with the ISP on the control plane and the data plane. The
 control plane is used to create a contract with the ISP; a client
 requests a route from PoP A to PoP B and the ISP responds with a token
 that the client can attach to packets so that the ISP knows to send
-them along that route. The data plane is used to actually send
+them along that route. The data plane is used to forward the
 packets. If a packet arrives at the ingress PoP with a token the ISP
 recognizes, the ISP is responsible for routing that token to the
 egress PoP.
 
-The primary challenge of implementing such an ISP is
+The primary challenge in implementing such an ISP is
 fault-tolerance. Traditional ISPs are configured using the BGP
-protocol, which provides edge routers with information about what the
-next hop should be for a given IP address. This information changes
-infrequently and propagates slowly. In contrast, our ISP needs to
+protocol for inter-domain routing, which provides edge routers with information about what the
+next hop should be for a given destination IP address. BGP routing updates are known to  
+propagate slowly. In contrast, our ISP needs to
 configure its edge routers dynamically to provide a route servicing
-each new contract. The information about which tokens map to which
+each new contract. The circuit state or the mapping from client circuit tokens to
 routes needs to be propagated and stored at the edge nodes in a
 fault-tolerant manner so that if an edge node fails the remaining
 nodes are able to route client traffic correctly. If there is a
 failure at an edge node, neighboring ISPs must cooperate to route
 around the failing node. Thus, we introduce a simple failover
-protocol. Our failovers are initiated on the client side since the
-client can then decide how often to check for failed deliveries, what
-an appropriate delivery timeout looks like, etc.
-
+protocol. Our failovers are initiated on the client side since we believe the
+client is best positioned to detect failures in the path and should be left to
+decide how often to check for failed deliveries or what
+an appropriate delivery timeout looks like.
 Our primary contributions are:
 \begin{enumerate}
 \item A proof-of-concept implementation of a fault-tolerant
@@ -350,12 +350,8 @@ The second goal is to evaluate the fault-tolerance of our ISPs and test
 our failover protocols.
  Within each ISP, the state (the mapping from client token to the circuit the
 client purchased) maintained at each PoP needs to be resilient to
-failures. We arbitrarily shut down the second ISP edge nodes. We
-then measure the performance metrics with respect to such failures. In
-the ideal case, if the failures are infrequent enough, we should
-expect to see little degradation in the performance. We will push the
-system to the extreme and establish the point at which the system
-experiences severe performance degradation.
+failures. We arbitrarily shut down the second ISP edge nodes one at a time,
+ and then measure the failover time for the path to recover from failures.
 
 In our experiment, we first establish an end-to-end path from the client 
 to the server via 3 ISP PoPs using our control plane infrastructure.
@@ -391,11 +387,18 @@ is tens of seconds, in contrast to a failover time on the order of hours using B
 We can conclude from our experiments that XXX.
 
 \section{Future Work}
+
 Our three ISPs are all hosted on the UW VICCI cluster due to network interface issues with VICCI. We will need to conduct future experiments and find out if a more long haul network would significantly increase the failover time.
 
 Despite the feasibility of executing failover, our infrastructure is not optimized for efficiency. The bottleneck in the failover time is due to the significant delays in having zookeeper propagating circuit states and updating the Serval service table on the data plane. We envision more fine-grained updates to the circuit states will significantly shorten the failover time.
 
 Due to difficulties in maintaining a large number of usable VICCI nodes, we limit ourselves to only simulate the most interesting failures cases. We did not simulate failures at the circuit establishment nodes or the Zookeeper nodes. On a more full scale evaluation, we can potentially simulate those failure cases too.
+
+We did not measure the routing performance of our ISPs. A more extensive evaluation can include those performance metrics.
+
+Our ISP infrastructure can be extended to provide a range of services, in addition to provisioning a path for the clients. We envision that clients can obtain guarantees for Quality of Service, bandwidth and other useful services that an ISP can provide.
+
+\section{Conclusion}
 
 \bibliography{bibliography}
 \bibliographystyle{plain}

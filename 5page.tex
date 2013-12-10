@@ -78,8 +78,10 @@ Our primary contributions are:
 \end{enumerate}
 
 \section{Related Work}
-Our work is an implementation of the model presented in the TaaS
-proposal. The TaaS proposal \cite{taas} provided a simulation of
+Our work is an implementation of the model presented in the Transit as
+a Service (TaaS)
+
+The TaaS proposal \cite{taas} provided a simulation of
 traffic flowing through reliable ISPs, but did not actually implement
 such an ISP. Our contribution is to provide a working,
 proof-of-concept implementation of a reliable TaaS-supporting ISP, and
@@ -245,20 +247,80 @@ failover has succeeded. Subsequent traffic is now routed through the
 new circuit.
 
 \section{Implementation}
+\subsection{Control plane}
+We implemented the control plane (circuit establishment and failover)
+as daemons written in the Python programming language. The client
+communicates with these daemons using protocol buffers
+\cite{protobuf}, an open standard for binary message serialization. A
+third daemon runs on each ISP edge node and ensures that its local
+routing state (described in the next section) corresponds to the state
+in Zookeeper.
+\subsection{Data plane}
 As a proof of concept, we implemented our design as an overlay on top
-of the IP layer using a modified version of Serval, a service-oriented
-networking system. On each node, Serval keeps a service table, which
-is a mapping from integer service IDs to either local sockets or IP
-addresses on which these services reside. We added an authenticator
-field to this service table so that when a packet is forwarded on a
-given service ID, its TAAS authenticator is updated.
+of the IP layer using Serval, a service-oriented networking system. On
+each node, Serval keeps a service table, which is a mapping from
+integer service IDs to rules. These rules can either be demux rules
+which correspond to Serval sockets opened by local applications or
+forwarding rules. A forwarding rule contains the IP address of another
+machine running Serval.
+
+A Serval packet has an extra header (inside the IP header but wrapping
+the layer 3 header) which contains its destination service ID. When
+Serval sees an incoming packet, it looks up the packet's service ID in
+its local table. If it finds a demux rule, it places the packet on
+the corrsponding local socket's queue and notifies the application
+which owns the socket. If it finds a forwarding rule, it forwards the
+packet on to the corresponding IP address.
+
+\begin{table}
+\centering
+\begin{tabular}{| l | l | l | l | }
+  \hline
+  ISP & Service ID & TaaS Auth & IP \\ \hline
+  ISP1 & auth1 & auth2 & ISP2 \\ \hline
+  ISP1 & auth2 & auth3 & ISP3 \\ \hline
+\end{tabular}
+\caption{ISP service tables}
+\label{table:servicetables}
+\end{table}
+
+We modified Serval to add an extra field to forwarding rules and
+Serval headers which corresponds to the TAAS authenticator. When our
+modified version of Serval receives a request which contains a TaaS
+authenticator, it uses that authenticator instead of the incoming
+service ID to find the packet's destination. For instance, if the
+service tables are configured as in Table \ref{table:servicetables},
+when ISP1 sees an incoming packet with TAAS authenticator
+\texttt{auth1}, it looks it up in its service table and finds the
+entry for ISP2. It then updates the packet's Serval header so that its
+TaaS authenticator field is \texttt{auth2} and forwards the packet to
+ISP2. ISP2 then does the same process and forwards the packet to
+ISP3. Thus a packet is routed through the system base on a series of
+authenticators, where each authenticator is defined by one ISP and
+used by another.
+
+\begin{table}
+\centering
+\begin{tabular}{| l | l | l | }
+  \hline
+  Service ID & TaaS Auth & IP \\ \hline
+  id1 & auth1 & ISP1 \\ \hline
+\end{tabular}
+\caption{Client service table}
+\label{table:clientservice}
+\end{table}
 
 Serval has a system for ``translating'' IP traffic to serval traffic
 so that both the client and server can use standard IP sockets and the
 intermediate nodes (ISP nodes in our case) can run
 Serval. Unfortunately, we were unable to get this system
 working. Therefore, we require the client and the server to run Serval
-as well.
+as well. The client's service table will include a service matching
+Table \ref{table:clientservice}. \texttt{id1} is defined by the
+client; any application on the client which wants to use the circuit
+should open a Serval socket on \texttt{id1}. Packets sent on that
+socket will include \texttt{auth1} as the authenticator, which ISP1
+will use to find its entry for the circuit.
 
 \section{Evaluation}
 

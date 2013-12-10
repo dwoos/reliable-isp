@@ -143,8 +143,8 @@ int client(char *ip) {
 
 	while (1) {
                 sprintf(sbuf, "ping %s %d", ip, local_port);
-		printf("client: sending \"%s\" to service ID %s\n",
-                       sbuf, service_id_to_str(&srvaddr.sv_srvid));
+		//printf("client: sending \"%s\" to service ID %s\n",
+                //sbuf, service_id_to_str(&srvaddr.sv_srvid));
 
                 ret = sendto_sv(sock, sbuf, strlen(sbuf), 0, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
 
@@ -162,7 +162,7 @@ int client(char *ip) {
                         break;
                 }
                 else if (ret < 0) {
-                        printf("failover detected!\n");
+                        //printf("failover detected!\n");
                         struct timeval t1, t2;
                         double elapsed_time;
                         gettimeofday(&t1, NULL);
@@ -174,7 +174,7 @@ int client(char *ip) {
 
                 }
                 else {
-                        printf("Response from server: %s\n", rbuf);
+                        //printf("Response from server: %s\n", rbuf);
 
                         if (strcmp(sbuf, "quit") == 0)
                                 break;

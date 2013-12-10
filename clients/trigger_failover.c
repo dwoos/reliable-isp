@@ -79,7 +79,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
         getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
 
         if (so_error == 0) {
-            printf("Connected to %s:%d for failover protocol\n", hostname, portno);
+          //            printf("Connected to %s:%d for failover protocol\n", hostname, portno);
         } else {
             fprintf(stderr, "connection error, failover at first isp");
             return 1;
@@ -108,7 +108,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
         getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
 
         if (so_error == 0) {
-            printf("check message sent\n");
+          //            printf("check message sent\n");
         } else {
             fprintf(stderr, "fail to send check message; failover at first isp");
             return 1;
@@ -128,7 +128,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
         if (so_error == 0) {
             n = read(sockfd, buf, BUFSIZE);
-            printf("ack received\n");
+            //            printf("ack received\n");
         } else {
             fprintf(stderr, "fail to receive ack; failover at first isp");
             return 1;
@@ -146,7 +146,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
     // failover ack message
     Messages__CheckFailover *check_request = ack_msg->request;
-    printf("Ack msg: auth=%" PRIu64 "\n",check_request->authenticator);  // required field
+    //    printf("Ack msg: auth=%" PRIu64 "\n",check_request->authenticator);  // required field
 
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in acknowledge message authenticator");
@@ -170,7 +170,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
         if (so_error == 0) {
             n = read(sockfd, buf, BUFSIZE);
-            printf("complete received\n");
+            //            printf("complete received\n");
         } else {
             fprintf(stderr, "fail to receive complete; failover fail");
             return 1;
@@ -189,7 +189,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
     // failover complete message
     check_request = complete_msg->request;
-    printf("Complete msg: auth=%" PRIu64 "\n",check_request->authenticator);  // required field
+    //    printf("Complete msg: auth=%" PRIu64 "\n",check_request->authenticator);  // required field
 
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in complete message authenticator");
@@ -197,7 +197,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
     }
 
     if (complete_msg->success) {
-        printf("failover success\n");
+      //        printf("failover success\n");
     } else {
         printf("failover failed\n");
     }

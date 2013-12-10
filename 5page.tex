@@ -178,25 +178,47 @@ will request new routes).
 
 In our system, failures can potentially occur at several different
 levels:
+
 \begin{enumerate}
-\item blah
+\item Failure of a whole ISP
+\item Failure of a core node
+\item Failure of an edge node
 \end{enumerate}
 
+If the ISP as a whole fails, the client will need to discover this and
+either provision an alternate route to its end host or accept that its
+traffic will not get through until the failed ISP comes back
+online. If the client chooses to route around the failed ISP, it will
+need to initiate the TAAS circuit construction protocol again, this
+time ensuring that it does not purchase service from the failed ISP.
 
-Our system does not perform failure detection, since we believe that
-in general the client will be able to do a better job of determining
-whether its traffic is actually arriving at the server. Therefore,
-failover is a client-driven process. When the client detects a
-failover (i.e. it detects that its traffic is not successfully
-arriving at the server), it notifies the first ISP that it believes a
-problem has occured. If it does not receive an acknowledgment from the
-first ISP, it concludes that that is where the failure exists and
-fails over to another edge node in the same ISP. If the first ISP does
-receive the client's message, it first acknowledges it so that the
-client doesn't assume it has failed, then checks the second ISP in the
-same way that the client checked it. Thus, the process is initiated by
-the client but is actually performed at each non-failing ISP node in
-the circuit.
+If a core node fails, the ISP is responsible for detecting this
+failure and routing around it. There are many established systems for
+doing so; one recent example is Data-Driven Connectivity \cite{ddc},
+in which packets which can't be delivered due to failure are bounced
+back up the path they came down until another path can be
+established. Each ISP can choose to recover from these internal
+failures by whatever method it chooses so long as its SLAs are
+maintained.
+
+The last failover case is failure at an edge node. Since edge nodes
+correspond to boundaries between ISPs, edge nodes belonging to
+different ISPs need to cooperatively handle failover; thus, we have
+designed a failover protocol which must be implemented by each
+participating ISP.  Our system does not perform failure detection,
+since we believe that in general the client will be able to do a
+better job of determining whether its traffic is actually arriving at
+the server. Therefore, failover is a client-driven process. When the
+client detects a failover (i.e. it detects that its traffic is not
+successfully arriving at the server), it notifies the first ISP that
+it believes a problem has occured. If it does not receive an
+acknowledgment from the first ISP, it concludes that that is where the
+failure exists and fails over to another edge node in the same ISP. If
+the first ISP does receive the client's message, it first acknowledges
+it so that the client doesn't assume it has failed, then checks the
+second ISP in the same way that the client checked it. Thus, the
+process is initiated by the client but is actually performed at each
+non-failing ISP node in the circuit.
 
 For example, assume a circuit has been established between a client C,
 ISP A, ISP B, and a server S. Each ISP has 3 routing nodes; we call
@@ -216,12 +238,12 @@ new circuit.
 
 The VICCI testbed consists of 4 clusters at US universities and 3
 clusters at international sites. We thus use the VICCI testbed to
-implement ISP PoPs. 
+implement ISP PoPs.
 Ideally, each VICCI site will function
 as a PoP that the client can establish a circuit with and the PoPs
-have to maintain the circuit state. 
+have to maintain the circuit state.
 However, due to uncooperative network interfaces on VICCI nodes,
-Serval has problems delivering packets across ViCCI clusters. 
+Serval has problems delivering packets across ViCCI clusters.
 As a result, we have to deploy all three ISPs within a single VICCI cluster,
  the University of Washington (UW) cluster. The client and server are also deployed
  on the UW cluster.

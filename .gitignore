@@ -1,2 +1,7 @@
 *.pyc
 .vagrant
+*.swp
+*.aux
+*.log
+*.gz
+*.pdf

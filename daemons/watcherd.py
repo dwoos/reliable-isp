@@ -73,9 +73,9 @@ class CircuitStateWatcher():
 			next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(authenticator))
 
 			# set watchers
-			#watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ip'.format(authenticator), self._nextIpWatcher)
-			#watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ips'.format(authenticator), self._nextIpsWatcher)
-			#watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_auth'.format(authenticator), self._nextAuthWatcher)
+			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ip'.format(authenticator), self._nextIpWatcher)
+			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ips'.format(authenticator), self._nextIpsWatcher)
+			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_auth'.format(authenticator), self._nextAuthWatcher)
 
 			self.circuitStates[authenticator] = dict([
 			                                        ('next_ip', next_ip[0]),

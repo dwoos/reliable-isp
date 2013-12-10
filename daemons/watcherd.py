@@ -112,7 +112,7 @@ class CircuitStateWatcher():
         # find out the auth and old_next_ip
         current_service_table = get_local_service_table()
         auth = event.path.split('/')[2]
-        next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(auth)) 
+        next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(auth))[0]
         old_next_ip = current_service_table[next_auth]
         
         # delete the old service table entry

@@ -138,6 +138,8 @@ int client(char *ip) {
 	}
 
 	printf("connected\n");
+        // hack around race condition
+        sleep(10);
 
 	while (1) {
                 sprintf(sbuf, "ping %s %d", ip, local_port);

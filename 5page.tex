@@ -176,9 +176,9 @@ within the ISP. The end-hosts and each of the PoPs in a TaaS-supported
 ISP will be running Serval module which allows the packet to be
 transformed as it is being routed through the circuit, e.g. the PoPs
 modifies the destination IP address and TaaS token of the packet as it
-is routed from one hop to another. For example, as shown in the
-figure, having established the circuits at each ISP, the client
-(End-host 1) sends data packets with Token1 to ISP A. The routers at
+is routed from one hop to another. For example, as shown in Fig. \ref{fig:diagram},
+ the client (End-host 1), having established the path,
+ sends data packets with Token1 to ISP A. The edge nodes at
 ISP A use Token1 to identify the circuit the client has purchased and
 forward the packets to ISP B, while changing the token to Token2. On
 receiving the packet identified by Token2, ISP B routes the packet to

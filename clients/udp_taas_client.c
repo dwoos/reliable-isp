@@ -144,7 +144,7 @@ int client(char *ip) {
 		printf("client: sending \"%s\" to service ID %s\n",
                        sbuf, service_id_to_str(&srvaddr.sv_srvid));
 
-                //ret = sendto_sv(sock, sbuf, strlen(sbuf), 0, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
+                ret = sendto_sv(sock, sbuf, strlen(sbuf), 0, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
 
 		if (ret < 0) {
 			fprintf(stderr, "send failed (%s)\n",

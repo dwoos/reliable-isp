@@ -215,15 +215,17 @@ new circuit.
 
 The VICCI testbed consists of 4 clusters at US universities and 3
 clusters at international sites. We will thus use the VICCI testbed to
-implement the edge component of an ISP. Each VICCI site will function
+implement the edge component of an ISP. 
+Ideally, each VICCI site will function
 as a PoP that the client can establish a circuit with and the PoPs
-have to maintain the circuit state.  We will simulate two ISPs by
-deploying our architecture on two VICCI clusters, most likely the
-Stanford and Princeton clusters. At each cluster/ISP PoP, we will have
-5 nodes to be the control plane that establish circuits with clients
-and around 10-15 nodes to be the Serval data plane that forwards
-traffic. The coordination service provided by Zookeeper will consist
-of 3 nodes that may or may not overlap with the control plane nodes.
+have to maintain the circuit state. 
+However, due to deployment issues on VICCI relating to uncooperative network interface,
+ we have to deploy all three ISPs on the University of Washington cluster.
+At each cluster/ISP PoP, we will have
+1 nodes to be the control plane that establish circuits with clients
+and 3 nodes to be the Serval data plane that forwards
+traffic. The coordination service provided by Zookeeper is hosted
+at a separate node from control plane or data plane.
 
 There are two goals in our evaluation. The first goal is to establish
 the feasibility of stateful transformation in our ISP and evaluate the

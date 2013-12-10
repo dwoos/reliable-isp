@@ -79,21 +79,26 @@ Our primary contributions are:
 
 \section{Related Work}
 Our work is an implementation of the model presented in the Transit as
-a Service (TaaS)
+a Service (TaaS) paper \cite{taas}. In the TaaS model, there are two
+types of principals: end-hosts and ISPs. When end-host \texttt{A}
+wants to establish a circuit end-host \texttt{B}, it uses an internet
+atlas service such as iPlane \cite{iplane} to find a route to
+\texttt{B} which goes through one or more TaaS-supporting ISPs. It
+then contacts these ISPs individually and purchases service from each
+of them. This service comes with a service level agreement which can
+provide guarantees about latency, bandwidth, uptime, and even
+security. Once the client has purchased service from each ISP on the
+route, it can send traffic through the newly-established circuit and
+be confident that its traffic will be delivered consistently and in a
+timely fashion. The TaaS paper provided a simulation of traffic
+flowing through reliable ISPs, but did not actually implement such an
+ISP. Our contribution is to provide a working, proof-of-concept
+implementation of a reliable TaaS-supporting ISP, and to show that it
+is possible to get adequate performance and reliability.
 
-The TaaS proposal \cite{taas} provided a simulation of
-traffic flowing through reliable ISPs, but did not actually implement
-such an ISP. Our contribution is to provide a working,
-proof-of-concept implementation of a reliable TaaS-supporting ISP, and
-to show that it is possible to get adequate performance and
-reliability.
-
-We use the Paxos protocol \cite{paxos} in order to provide
-fault-tolerant replication of route data. Other projects, such as
-Gaios \cite{gaios}, use Paxos to sequential consistency for data
-stores. Our contribution is to apply Paxos, a well-known and arguably
-well understood algorithm, to a novel use case (routing within an
-ISP).
+The problem TaaS seeks to solve--the poor reliability and security of
+current inter-domain routing technologies--is quite apparent, and
+there have been many other attempts to improve the situation.
 
 Another area of related work is in Software Defined
 Networking. Systems like Frenetic \cite{frenetic} allow users to
@@ -340,11 +345,11 @@ at a separate node from control plane or data plane that maintains consistency
 in the circuit state within a PoP.
 
 There are two goals in our evaluation. The first goal is to establish
-the feasibility of stateful transformation in our ISPs. We 
+the feasibility of stateful transformation in our ISPs. We
 deploy our ISP infrastructures on VICCI nodes and have O(100)
 clients establish circuits through our ISPs. We use simple UDP clients
 and UDP echo servers to verify that our infrastructure can deliver packets
-using the path the clients established. 
+using the path the clients established.
 
 The second goal is to evaluate the fault-tolerance of our ISPs and test
 our failover protocols.
@@ -357,7 +362,7 @@ expect to see little degradation in the performance. We will push the
 system to the extreme and establish the point at which the system
 experiences severe performance degradation.
 
-In our experiment, we first establish an end-to-end path from the client 
+In our experiment, we first establish an end-to-end path from the client
 to the server via 3 ISP PoPs using our control plane infrastructure.
 Then, we obtain three sets of measurements, where
  $5, 20$ and $40$ UDP clients talk to the corresponding
@@ -367,7 +372,7 @@ sharing the path.
 In each measurement, all the UDP clients can successfully receive
 the echoes from the servers. This establishes the feasibility of
 stateful transformation in our ISP under mild workload.
-In order to trigger failover, we shutdown the network interface of the 
+In order to trigger failover, we shutdown the network interface of the
 nodes in the data plane at ISP 2. The clients can successfully detect
 the failures in the path through timeout (we expect applications will
 have reasonable ways of figuring out path failures). The clients then

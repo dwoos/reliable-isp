@@ -1,5 +1,5 @@
 for service_id in {1001..1020}
 do
 	echo $service_id
-	/reliable-isp/daemons/udp_taas_server $service_id &> /tmp/servers/$service_id.log &
+	/reliable-isp/daemons/udp_taas_server $service_id > /tmp/servers/$service_id.stdout 2> /tmp/servers/$service_id.stderr &
 done

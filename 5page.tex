@@ -263,11 +263,11 @@ new circuit.
 \subsection{Control plane}
 We implemented the control plane (circuit establishment and failover)
 as daemons written in the Python programming language. The client
-communicates with these daemons using protocol buffers
-\cite{protobuf}, an open standard for binary message serialization. A
-third daemon runs on each ISP edge node and ensures that its local
-routing state (described in the next section) corresponds to the state
-in Zookeeper.
+communicates with these daemons using protocol
+buffers\footnote{\url{https://code.google.com/p/protobuf/}}, an open
+standard for binary message serialization. A third daemon runs on each
+ISP edge node and ensures that its local routing state (described in
+the next section) corresponds to the state in Zookeeper.
 \subsection{Data plane}
 As a proof of concept, we implemented our design as an overlay on top
 of the IP layer using Serval, a service-oriented networking system. On

@@ -138,6 +138,7 @@ int client(char *ip) {
 	}
 
 	printf("connected\n");
+        fflush(stdout);
         // hack around race condition
         sleep(10);
 
@@ -171,7 +172,7 @@ int client(char *ip) {
                         elapsed_time = (t2.tv_sec - t1.tv_sec) * 1000.0;
                         elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
                         printf("FAILOVER IN %f\n", elapsed_time);
-
+                        fflush(stdout);
                 }
                 else {
                         //printf("Response from server: %s\n", rbuf);

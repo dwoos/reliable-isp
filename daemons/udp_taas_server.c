@@ -66,6 +66,7 @@ int server(short sid)
                 int k = 0;
 
                 printf("calling accept\n");
+                fflush(stdout);
 
                 int fd = accept_sv(sock, (struct sockaddr *)&cliaddr, &l);
 
@@ -100,6 +101,7 @@ int server(short sid)
                         buf[n] = '\0';
 
                         printf("server: request (%d bytes): %s\n", n, buf);
+                        fflush(stdout);
                         if (n > 0) {
                                 strtok(buf, " ");
                                 char *ip;

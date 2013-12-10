@@ -56,7 +56,7 @@ egress PoP.
 The primary challenge in implementing such an ISP is
 fault-tolerance. Traditional ISPs are configured using the BGP
 protocol for inter-domain routing, which provides edge routers with information about what the
-next hop should be for a given destination IP address. BGP routing updates are known to  
+next hop should be for a given destination IP address. BGP routing updates are known to
 propagate slowly. In contrast, our ISP needs to
 configure its edge routers dynamically to provide a route servicing
 each new contract. The circuit state or the mapping from client circuit tokens to
@@ -391,27 +391,68 @@ protocol and measurements of the failover time is shown in Fig. \ref{fig:failove
 \end{figure}
 
 Fig. \ref{fig:failover} shows the failover time versus the number of clients
-measurements. We make a few main observations: 1) for mild workload sharing
-the same path, the failover time for a single ISP edge node failure using our infrastructure
-is tens of seconds, in contrast to a failover time on the order of hours using BGP (\ref{XXX});
-2) the failover time increases with the number of applications sharing the path;
-3) the variability of failover time also increases as the number of application sharing the path increases.
+measurements. We make a few main observations:
+\begin{enumerate}
+\item for workloads sharing the same path, the failover time for a
+  single ISP edge node failure using our infrastructure is tens of
+  seconds, in contrast to a failover time on the order of hours or
+  even days using BGP;
+\item the failover time increases with the number of applications
+  sharing the path;
+\item the variability of failover time also increases as the number of
+  application sharing the path increases.
+\end{enumerate}
 
-We can conclude from our experiments that XXX.
+We can conclude from our experiments that reliable ISPs can feasibly
+provide transit to numerous clients, and can respond to failures in a
+reasonably short time (seconds, as opposed to hours or even days with
+current protocols).
 
 \section{Future Work}
 
-Our three ISPs are all hosted on the UW VICCI cluster due to network interface issues with VICCI. We will need to conduct future experiments and find out if a more long haul network would significantly increase the failover time.
+Our three ISPs are all hosted on the UW VICCI cluster due to network
+interface issues with VICCI. We will need to conduct future
+experiments and find out if a more long haul network would
+significantly increase the failover time.
 
-Despite the feasibility of executing failover, our infrastructure is not optimized for efficiency. The bottleneck in the failover time is due to the significant delays in having zookeeper propagating circuit states and updating the Serval service table on the data plane. We envision more fine-grained updates to the circuit states will significantly shorten the failover time.
+Despite the feasibility of executing failover, our infrastructure is
+not optimized for efficiency. The bottleneck in the failover time is
+due to the significant delays in having zookeeper propagating circuit
+states and updating the Serval service table on the data plane. We
+envision more fine-grained updates to the circuit states will
+significantly shorten the failover time.
 
-Due to difficulties in maintaining a large number of usable VICCI nodes, we limit ourselves to only simulate the most interesting failures cases. We did not simulate failures at the circuit establishment nodes or the Zookeeper nodes. On a more full scale evaluation, we can potentially simulate those failure cases too.
+Due to difficulties in maintaining a large number of usable VICCI
+nodes, we limit ourselves to only simulate the most interesting
+failures cases. We did not simulate failures at the circuit
+establishment nodes or the Zookeeper nodes. On a more full scale
+evaluation, we can potentially simulate those failure cases too.
 
-We did not measure the routing performance of our ISPs. A more extensive evaluation can include those performance metrics.
+We did not measure the routing performance of our ISPs. A more
+extensive evaluation can include those performance metrics.
 
-Our ISP infrastructure can be extended to provide a range of services, in addition to provisioning a path for the clients. We envision that clients can obtain guarantees for Quality of Service, bandwidth and other useful services that an ISP can provide.
+Our ISP infrastructure can be extended to provide a range of services,
+in addition to provisioning a path for the clients. We envision that
+clients can obtain guarantees for Quality of Service, bandwidth and
+other useful services that an ISP can provide.
 
 \section{Conclusion}
+Deficient interdomain routing protocols are responsible for many of
+the modern internet's fundamental reliability, performance, and
+security issues. When an end-host sends a packet out--a packet which
+might contain an email to a friend, crucial health monitoring data, or
+national secrets--the end-host has very little control over the path
+this packet will traverse through the internet before arriving--or
+not--at its intended destination. We seek to remedy this issue by
+allowing end-hosts to purchase service from reliable, fault-tolerant
+ISPs, stitching together a sequence of such ISPs to provide a
+reliable, secure, and fast path through the internet.
+
+Our contribution is a working, proof-of-concept implementation of a
+reliable and fault-tolerant ISP, including protocols for circuit
+establishment and failover. We describe the architecture and
+implementation of an individual ISP, and evaluate the performance of a
+complete circuit.
 
 \bibliography{bibliography}
 \bibliographystyle{plain}

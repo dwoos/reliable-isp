@@ -189,15 +189,15 @@ Our ISP needs to maintain the circuit states at the control plane in a
 fault-tolerant fashion. When a client requests and establishes a
 circuit with any controller, we need to update and replicate the
 circuit state at a group of designated nodes at the PoP. This is
-coordinated using Apache Zookeeper (an open-source version of Google's
-Chubby service) that uses the Paxos consensus algorithm. It ensures
-that a majority of those designated nodes are aware of any given route
-through the system; thus, if a node fails, the client can send traffic
-through a different node. The main weakness of Paxos is its
-performance cost, but as these operations are restricted to the
-control plane, there is no need for them to be especially fast
-(clients will send data through the system far more often than they
-will request new routes).
+coordinated using Apache
+Zookeeper\footnote{\url{http://zookeeper.apache.org/}}, an open-source
+distributed coordination service. It ensures that a majority of those
+designated nodes are aware of any given route through the system;
+thus, if a node fails, the client can send traffic through a different
+node. The main weakness of Paxos is its performance cost, but as these
+operations are restricted to the control plane, there is no need for
+them to be especially fast (clients will send data through the system
+far more often than they will request new routes).
 
 \subsection{Failover}
 

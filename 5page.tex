@@ -16,16 +16,15 @@
 
 The modern Internet is deficient in reliability, security,
 customizability and evolvability. The main problem is that ISPs cannot
-control end-to-end delivery of their customers nor independently
-introduce new services. Under the constraint of ISPs only being able
-to provide what they can guarantee themselves, our broad goal is
-enable ISPs to provide reliable packet delivery from one end host to another
-and a bundle of other
-crucial services to their customers. However, the first obstacle is
-that ISPs are currently constrained by the design of using routers and
-switches with proprietary ASICs and vendor-provided routing
-protocols. Our next step is therefore to design an ISP that is more
-reliable and agile.
+control end-to-end deliverability of their customers' packets or
+independently introduce new services. Under the constraint of ISPs
+only being able to provide what they can guarantee themselves, our
+broad goal is enable ISPs to provide reliable packet delivery from one
+end host to another and a bundle of other crucial services to their
+customers. However, the first obstacle is that ISPs are currently
+constrained by the design of using routers and switches with
+proprietary ASICs and outmoded routing protocols. Our next step is
+therefore to design an ISP that is more reliable and agile.
 
 In our model, a client will make a contract with an ISP to obtain
 specific guarantees about packets it sends through that ISPs
@@ -54,7 +53,7 @@ packets. If a packet arrives at the ingress PoP with a token the ISP
 recognizes, the ISP is responsible for routing that token to the
 egress PoP.
 
-The main challenge we face in implementing such an ISP is
+The primary challenge of implementing such an ISP is
 fault-tolerance. Traditional ISPs are configured using the BGP
 protocol, which provides edge routers with information about what the
 next hop should be for a given IP address. This information changes
@@ -63,7 +62,20 @@ configure its edge routers dynamically to provide a route servicing
 each new contract. The information about which tokens map to which
 routes needs to be propagated and stored at the edge nodes in a
 fault-tolerant manner so that if an edge node fails the remaining
-nodes are able to route client traffic correctly.
+nodes are able to route client traffic correctly. If there is a
+failure at an edge node, neighboring ISPs must cooperate to route
+around the failing node. Thus, we introduce a simple failover
+protocol. Our failovers are initiated on the client side since the
+client can then decide how often to check for failed deliveries, what
+an appropriate delivery timeout looks like, etc.
+
+Our primary contributions are:
+\begin{enumerate}
+\item A proof-of-concept implementation of a fault-tolerant
+  inter-domain routing system
+\item The circuit establishment protocol
+\item The failover protocol
+\end{enumerate}
 
 \section{Related Work}
 Our work is an implementation of the model presented in the TaaS
@@ -115,10 +127,8 @@ clients to establish intra-domain circuits. On receiving a
 createCircuit request (C1 in Figure \ref{fig:diagram}), the
 controllers respond with a per-circuit-per-client authentication token
 (C2) to the client. The controllers subsequently update the forwarding
-tables of the Serval-supporting routers (C3) to add the new forwarding
-rules in the routers (we use commodity PCs running Linux and the
-Serval module to forward packets instead of dedicated routers).  The
-same sequence of events (C4, C5, C6) happen for every ISP in the
+tables of the edge nodes (C3) to add the new forwarding rules in the .
+The same sequence of events (C4, C5, C6) happen for every ISP in the
 circuit.
 
 At the end of the circuit establishment phase, every ISP on the
@@ -233,6 +243,22 @@ acknowledges it. A1 updates its local state so that packets on the
 circuit go to B2 rather than B1, then informs the client that the
 failover has succeeded. Subsequent traffic is now routed through the
 new circuit.
+
+\section{Implementation}
+As a proof of concept, we implemented our design as an overlay on top
+of the IP layer using a modified version of Serval, a service-oriented
+networking system. On each node, Serval keeps a service table, which
+is a mapping from integer service IDs to either local sockets or IP
+addresses on which these services reside. We added an authenticator
+field to this service table so that when a packet is forwarded on a
+given service ID, its TAAS authenticator is updated.
+
+Serval has a system for ``translating'' IP traffic to serval traffic
+so that both the client and server can use standard IP sockets and the
+intermediate nodes (ISP nodes in our case) can run
+Serval. Unfortunately, we were unable to get this system
+working. Therefore, we require the client and the server to run Serval
+as well.
 
 \section{Evaluation}
 

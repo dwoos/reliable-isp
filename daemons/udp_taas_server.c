@@ -63,6 +63,21 @@ int server(short sid)
         do {
                 socklen_t l = sizeof(cliaddr);
                 int k = 0;
+
+                printf("calling accept\n");
+
+                int fd = accept_sv(sock, (struct sockaddr *)&cliaddr, &l);
+
+                if (fd < 0) {
+                        fprintf(stderr, "error accepting new conn %s\n",
+                                strerror_sv(errno));
+                        return -1;
+                }
+
+                printf("server: recv conn from service id %s; got fd = %d\n",
+                       service_id_to_str(&cliaddr.sv_srvid), fd);
+
+
                 do {
                         unsigned N = 2000;
                         char buf[N];
@@ -70,7 +85,7 @@ int server(short sid)
 
                         /* printf("server: waiting on client request\n"); */
 
-                        if ((n = recvfrom_sv(sock, buf, N, 0, (struct sockaddr *)&cliaddr, &l)) < 0) {
+                        if ((n = recvfrom_sv(fd, buf, N, 0, (struct sockaddr *)&cliaddr, &l)) < 0) {
                                 fprintf(stderr,
                                         "server: error receiving client request: %s\n",
                                         strerror_sv(errno));
@@ -102,6 +117,7 @@ int server(short sid)
                         }
                         k++;
                 } while (1);
+                close_sv(fd);
                 printf("Server listening for NEW connections\n");
         } while (1);
         close_sv(sock);

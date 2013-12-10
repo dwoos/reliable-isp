@@ -237,13 +237,13 @@ new circuit.
 \section{Evaluation}
 
 The VICCI testbed consists of 4 clusters at US universities and 3
-clusters at international sites. We thus use the VICCI testbed to
+clusters at international sites. We use the VICCI testbed to
 implement ISP PoPs.
-Ideally, each VICCI site will function
+Ideally, we want each VICCI site to function
 as a PoP that the client can establish a circuit with and the PoPs
 have to maintain the circuit state.
 However, due to uncooperative network interfaces on VICCI nodes,
-Serval has problems delivering packets across ViCCI clusters.
+Serval has problems delivering packets across VICCI clusters.
 As a result, we have to deploy all three ISPs within a single VICCI cluster,
  the University of Washington (UW) cluster. The client and server are also deployed
  on the UW cluster.
@@ -272,6 +272,32 @@ the ideal case, if the failures are infrequent enough, we should
 expect to see little degradation in the performance. We will push the
 system to the extreme and establish the point at which the system
 experiences severe performance degradation.
+
+In our experiment, we first establish an end-to-end path from the client 
+to the server via 3 ISP PoPs using our control plane infrastructure.
+Then, we obtain three sets of measurements, where
+ $5, 20$ and $40$ UDP clients talk to the corresponding
+number of UDP echo servers using the path we just established, and
+we attempt to measure the failover time versus the number of clients
+sharing the path.
+In each measurement, all the UDP clients can successfully receive
+the echoes from the servers. This establishes the feasibility of
+stateful transformation in our ISP under mild workload.
+In order to trigger failover, we shutdown the network interface of the 
+nodes in the data plane at ISP 2. The clients can successfully detect
+the failures in the path through timeout (we expect applications will
+have reasonable ways of figuring out path failures). The clients then
+send check-failover requests to the failover daemons running on the
+ISP data plane. Our failover daemons successfully run the failover
+protocol and measurements of the failover time is shown in Fig. \ref{fig:failover}.
+
+\begin{figure}
+\includegraphics[width=\linewidth]{failoverTime_numClients}
+\caption{A Plot of Failover Time vs. Number of Clients}
+\label{fig:failover}
+\end{figure}
+
+
 
 \bibliography{bibliography}
 \bibliographystyle{plain}

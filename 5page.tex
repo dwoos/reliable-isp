@@ -324,19 +324,16 @@ will use to find its entry for the circuit.
 
 \section{Evaluation}
 
-The VICCI testbed consists of 4 clusters at US universities and 3
-clusters at international sites. We use the VICCI testbed to
-implement ISP PoPs.
+We deploy our ISP PoPs on the VICCI testbed.
 Ideally, we want each VICCI site to function
-as a PoP that the client can establish a circuit with and the PoPs
-have to maintain the circuit state.
+as a PoP to simulate the geographical spread of ISP PoPs.
 However, due to uncooperative network interfaces on VICCI nodes,
 Serval has problems delivering packets across VICCI clusters.
 As a result, we have to deploy all three ISPs within a single VICCI cluster,
- the University of Washington (UW) cluster. The client and server are also deployed
+ the University of Washington (UW) cluster. The clients and servers are also deployed
  on the UW cluster.
-For each ISP PoP, we have
-one node to be the TAAS control plane that establish circuits with clients
+For each ISP PoP, we set up
+one node to be the TAAS control plane that clients establish circuits with
 and three nodes to be the TAAS data plane that forwards
 traffic. The coordination service provided by Zookeeper is hosted
 at a separate node from control plane or data plane that maintains consistency
@@ -398,7 +395,7 @@ Our three ISPs are all hosted on the UW VICCI cluster due to network interface i
 
 Despite the feasibility of executing failover, our infrastructure is not optimized for efficiency. The bottleneck in the failover time is due to the significant delays in having zookeeper propagating circuit states and updating the Serval service table on the data plane. We envision more fine-grained updates to the circuit states will significantly shorten the failover time.
 
-
+Due to difficulties in maintaining a large number of usable VICCI nodes, we limit ourselves to only simulate the most interesting failures cases. We did not simulate failures at the circuit establishment nodes or the Zookeeper nodes. On a more full scale evaluation, we can potentially simulate those failure cases too.
 
 \bibliography{bibliography}
 \bibliographystyle{plain}

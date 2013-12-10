@@ -205,7 +205,7 @@ time ensuring that it does not purchase service from the failed ISP.
 If a core node fails, the ISP is responsible for detecting this
 failure and routing around it. There are many established systems for
 doing so; one recent example is Data-Driven Connectivity \cite{ddc},
-in which packets which can't be delivered due to failure are bounced
+in which packets which cannot be delivered due to failure are bounced
 back up the path they came down until another path can be
 established. Each ISP can choose to recover from these internal
 failures by whatever method it chooses so long as its SLAs are
@@ -323,6 +323,16 @@ protocol and measurements of the failover time is shown in Fig. \ref{fig:failove
 \label{fig:failover}
 \end{figure}
 
+Fig. \ref{fig:failover} shows the failover time versus the number of clients
+measurements. We make a few main observations: 1) for mild workload sharing
+the same path, the failover time for a single ISP edge node failure using our infrastructure
+is tens of seconds, in contrast to a failover time on the order of hours using BGP (\ref{XXX});
+2) the failover time increases with the number of applications sharing the path;
+3) the variability of failover time also increases as the number of application sharing the path increases.
+
+We can conclude from our experiments that XXX.
+
+Here are a few limitations in our experimental setup: XXX
 
 
 \bibliography{bibliography}

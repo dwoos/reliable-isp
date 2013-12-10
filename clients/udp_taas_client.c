@@ -174,6 +174,7 @@ int client(char *ip) {
                         elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
                         printf("FAILOVER IN %f\n", elapsed_time);
                         fflush(stdout);
+                        sleep(10);
                 }
                 else {
                         //printf("Response from server: %s\n", rbuf);

@@ -1,5 +1,5 @@
-for service_id in {1001..2000}
+for service_id in {1001..1100}
 do
 	echo $service_id
-	/reliable-isp/daemons/udp_taas_server $service_id &
+	/reliable-isp/daemons/udp_taas_server $service_id > /dev/null &
 done

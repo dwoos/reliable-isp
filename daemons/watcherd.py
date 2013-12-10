@@ -101,13 +101,16 @@ class CircuitStateWatcher():
 
 
     def _nextIpWatcher(self, new_next_ip, stat, event):
+        if event is None:
+            return
+
     	# new_next_ip is the new data value
     	# stat is ZnodeStat
     	# event is WatchedEvent(type='CHANGED', state='CONNECTED', path=u'/circuit/(auth)/next_ip')
         print 'next_ip has been changed in zookeeper'
 
         # find out the auth and old_next_ip
-        current_service_table = self.get_local_service_table()
+        current_service_table = get_local_service_table()
         auth = event.path.split('/')[2]
         next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(auth)) 
         old_next_ip = current_service_table[next_auth]

@@ -14,7 +14,10 @@ case $(hostname) in
     *) exit ;;
 esac
 
-IP=$(ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-)
+#IP=$(ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-)
+
+# use external ip
+IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | cut -c2-13)
 
 cd /reliable-isp
 git pull

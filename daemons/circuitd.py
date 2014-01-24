@@ -27,7 +27,8 @@ def is_valid_client(client_id):
     return True
 
 def get_my_ip():
-    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
+#    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
+    return subprocess.check_output(["IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | cut -c2-13)"],
                                    shell=True).strip()
 
 class CircuitHandler(SocketServer.BaseRequestHandler):

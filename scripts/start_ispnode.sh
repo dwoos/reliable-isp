@@ -14,7 +14,7 @@ case $(hostname) in
     node16.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
     node17.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
 
-    node25.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
+    node26.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
     node22.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
     node23.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
 

@@ -1,7 +1,6 @@
 case $(hostname) in
     node12.washington.vicci.org) echo $hostname ;;
     node25.washington.vicci.org) echo $hostname ;;
-    node35.washington.vicci.org) echo $hostname ;;
 	node25.stanford.vicci.org) echo $hostname ;;
 	node18.stanford.vicci.org) echo $hostname ;;
 

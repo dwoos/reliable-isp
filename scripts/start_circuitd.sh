@@ -1,7 +1,8 @@
 case $(hostname) in
-    node14.washington.vicci.org) CONFIG=isp1.json ;;
-    node26.washington.vicci.org ) CONFIG=isp3.json ;;
-    node36.washington.vicci.org ) CONFIG=isp4.json ;;
+    node14.washington.vicci.org) CONFIG=ISP1_ING.json ;;
+    node26.washington.vicci.org ) CONFIG=ISP2_ING.json ;;
+    node12.stanford.vicci.org ) CONFIG=ISP2_EG.json ;;
+    node19.stanford.vicci.org ) CONFIG=ISP3_ING.json ;;
     *) exit ;;
 esac
 

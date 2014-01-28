@@ -19,8 +19,9 @@ zookeeper.start()
 
 
 def get_my_ip():
-    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
-                                   shell=True).strip()
+    #return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
+    #                               shell=True).strip()
+    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
 
 class FailoverHandler(SocketServer.BaseRequestHandler):
     def fail(self, req):

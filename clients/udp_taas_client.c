@@ -177,7 +177,7 @@ int client(char *ip) {
                         sleep(120);
                 }
                 else {
-                        //printf("Response from server: %s\n", rbuf);
+                        printf("Response from server: %s\n", rbuf);
 
                         if (strcmp(sbuf, "quit") == 0)
                                 break;

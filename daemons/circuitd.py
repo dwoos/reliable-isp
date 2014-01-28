@@ -28,8 +28,9 @@ def is_valid_client(client_id):
 
 def get_my_ip():
 #    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
-    return subprocess.check_output(["IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | cut -c2-13)"],
-                                   shell=True).strip()
+    #return subprocess.check_output(["IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | cut -c2-13)"],
+     #                              shell=True).strip()
+    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
 
 class CircuitHandler(SocketServer.BaseRequestHandler):
     def handle(self):

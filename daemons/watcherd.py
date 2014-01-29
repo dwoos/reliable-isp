@@ -65,7 +65,7 @@ class CircuitStateWatcher():
         # get circuit states
         authenticators = self.zookeeper.get_children('/circuit')
 
-        for authenticator in authenticators:
+        for auth in authenticators:
             # transaction guarantees that
             # if /circuit/authenticator exists
             # then all three its children exist

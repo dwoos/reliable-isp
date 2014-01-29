@@ -20,119 +20,97 @@
 #define BUFSIZE 1024
 #define MAX_MSG_SIZE 1024
 
-#define CONNECT_TIMEOUT 100
-#define CHECK_REQUEST_TIMEOUT 100
-#define CHECK_ACK_TIMEOUT 100
-#define CHECK_COMPLETE_TIMEOUT 100
+#define CONNECT_TIMEOUT 10
+#define CHECK_REQUEST_TIMEOUT 10
+#define CHECK_ACK_TIMEOUT 10
+#define CHECK_COMPLETE_TIMEOUT 10
 
 /*
  * error - wrapper for perror
  */
-void error(char *msg) {
-    perror(msg);
-    exit(0);
-}
+#define error(msg) \
+            do { perror(msg); return false; } while (0)
 
-int trigger_failover(char *hostname, int portno, unsigned long long auth) {
-    int sockfd, n;
-    struct sockaddr_in serveraddr;
-    struct hostent *server;
-
+int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     /* socket: create the socket */
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("ERROR opening socket");
 
-    /* gethostbyname: get the server's DNS entry */
-    server = gethostbyname(hostname);
-    if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host as %s\n", hostname);
-        exit(0);
-    }
-
     /* build the server's Internet address */
-    bzero((char *) &serveraddr, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr,
-            (char *)&serveraddr.sin_addr.s_addr, server->h_length);
-    serveraddr.sin_port = htons(portno);
+    struct sockaddr_in next_hop_addr;
+    bzero((char *) &next_hop_addr, sizeof(next_hop_addr));
+    next_hop_addr.sin_family = AF_INET;
+    inet_aton(next_hop, &next_hop_addr.sin_addr);
+    next_hop_addr.sin_port = htons(port);
 
-    /* make connection non-blocking */
-    fcntl(sockfd, F_SETFL, O_NONBLOCK);
-
-    /* connect: create a connection with the server */
-    n = connect(sockfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+    /* make connection non-blocking for timeout */
+    int fcntl_flags = fcntl(sockfd, F_GETFL, 0);
+    if (fcntl(sockfd, F_SETFL, fcntl_flags | O_NONBLOCK) == -1)
+        error("fcntl");
 
     /* set timeout option in tcp connection */
     struct timeval tv;
     tv.tv_sec = CONNECT_TIMEOUT;  /* 5 Secs Timeout */
     tv.tv_usec = 0;
 
+    /* master_fdset for select */
+    fd_set master_fdset;
+    FD_ZERO(&master_fdset);
+    FD_SET(sockfd, &master_fdset);
+
+    /* try to connect before timeout */
     fd_set fdset;
-    FD_ZERO(&fdset);
-    FD_SET(sockfd, &fdset);
+    memcpy(&fdset, &master_fdset, sizeof(master_fdset));
 
-    if (select(sockfd + 1, NULL, &fdset, NULL, &tv) == 1) {
-        int so_error;
-        socklen_t len = sizeof so_error;
+    /* connect: create a connection with the server */
+    int n = connect(sockfd, (struct sockaddr *)&next_hop_addr, sizeof(next_hop_addr));
 
-        getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
-
-        if (so_error == 0) {
-          //            printf("Connected to %s:%d for failover protocol\n", hostname, portno);
-        } else {
-            fprintf(stderr, "connection error, failover at first isp");
-            return 1;
-        }
+    int rc = select(sockfd + 1, NULL, &fdset, NULL, &tv);
+    if (rc == -1) {
+        error("select");
+    } else if (rc == 0) {
+        // timeout in connect
+        fprintf(stderr, "connection error, failover at first isp");
+        return false;
     }
+    
+    // printf("Connected to %s:%d for failover protocol\n", hostname, port);
 
+    char buf[BUFSIZE];
     /* construct check failover message */
     Messages__CheckFailover check_msg = MESSAGES__CHECK_FAILOVER__INIT; // CheckFailover
-    char buf_backing[1000000];
-    void *buf = buf_backing;
-
     check_msg.authenticator = auth;
     check_msg.should_forward = 1;
     unsigned len = messages__check_failover__get_packed_size(&check_msg);
-
     messages__check_failover__pack(&check_msg,buf);
 
     /* send check message */
-    n = write(sockfd, buf, len);
     tv.tv_sec = CHECK_REQUEST_TIMEOUT;
     tv.tv_usec = 0;
-    if (select(sockfd + 1, NULL, &fdset, NULL, &tv) == 1) {
-        int so_error;
-        socklen_t len = sizeof so_error;
-
-        getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
-
-        if (so_error == 0) {
-          //            printf("check message sent\n");
-        } else {
-            fprintf(stderr, "fail to send check message; failover at first isp");
-            return 1;
-        }
+    memcpy(&fdset, &master_fdset, sizeof(master_fdset));
+    n = write(sockfd, buf, len);
+    rc = select(sockfd + 1, NULL, &fdset, NULL, &tv);
+    if (rc == -1) {
+        error("select");
+    } else if (rc == 0) {
+        // timeout in send check_request
+        fprintf(stderr, "timeout in sending check_request, failover at first isp");
+        return false;
     }
 
     /* read ack */
     bzero(buf, BUFSIZE);
-
     tv.tv_sec = CHECK_ACK_TIMEOUT;
     tv.tv_usec = 0;
-    if (select(sockfd + 1, &fdset, NULL, NULL, &tv) == 1) {
-        int so_error;
-        socklen_t len = sizeof so_error;
-
-        getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
-
-        if (so_error == 0) {
-            n = read(sockfd, buf, BUFSIZE);
-            //            printf("ack received\n");
-        } else {
-            fprintf(stderr, "fail to receive ack; failover at first isp");
-            return 1;
-        }
+    memcpy(&fdset, &master_fdset, sizeof(master_fdset));
+    rc = select(sockfd + 1, &fdset, NULL, NULL, &tv);
+    if (rc == -1) {
+        error("select");
+    } else if (rc == 0) {
+        // timeout in send check_request
+        fprintf(stderr, "fail to receive ack; failover at first isp");
+        return false;
     }
 
     /* construct check failover acknowledgement */
@@ -141,40 +119,32 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
     ack_msg = messages__check_failover_acknowledge__unpack(NULL, n, buf);
     if (ack_msg == NULL) {
         fprintf(stderr, "error unpacking incoming ack message\n");
-        return 1;
+        return false;
     }
 
     // failover ack message
     Messages__CheckFailover *check_request = ack_msg->request;
     //    printf("Ack msg: auth=%" PRIu64 "\n",check_request->authenticator);  // required field
-
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in acknowledge message authenticator");
-        return 1;
+        return false;
     }
 
     // free the ack message
     messages__check_failover_acknowledge__free_unpacked(ack_msg, NULL);
-
 
     /* read complete */
     bzero(buf, BUFSIZE);
 
     tv.tv_sec = CHECK_COMPLETE_TIMEOUT;
     tv.tv_usec = 0;
-    if (select(sockfd + 1, &fdset, NULL, NULL, &tv) == 1) {
-        int so_error;
-        socklen_t len = sizeof so_error;
-
-        getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
-
-        if (so_error == 0) {
-            n = read(sockfd, buf, BUFSIZE);
-            //            printf("complete received\n");
-        } else {
-            fprintf(stderr, "fail to receive complete; failover fail");
-            return 1;
-        }
+    memcpy(&fdset, &master_fdset, sizeof(master_fdset));
+    rc = select(sockfd + 1, &fdset, NULL, NULL, &tv);
+    if (rc == -1) {
+        error("select");
+    } else if (rc == 0) {
+        fprintf(stderr, "fail to receive complete; failover fail");
+        return false;
     }
 
 
@@ -184,7 +154,7 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
     complete_msg = messages__failover_complete__unpack(NULL, n, buf);
     if (complete_msg == NULL) {
         fprintf(stderr, "error unpacking incoming complete message\n");
-        return 1;
+        return false;
     }
 
     // failover complete message
@@ -193,20 +163,23 @@ int trigger_failover(char *hostname, int portno, unsigned long long auth) {
 
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in complete message authenticator");
-        return 1;
+        return false;
     }
 
+    bool failover_ret;
     if (complete_msg->success) {
-      //        printf("failover success\n");
+        printf("failover success\n");
+        failover_ret = true;
     } else {
         printf("failover failed\n");
-        fflush(stdout);
+        failover_ret = false;
     }
+    fflush(stdout);
 
     // free complete message
     messages__failover_complete__free_unpacked(complete_msg, NULL);
 
     close(sockfd);
 
-    return 0;
+    return failover_ret;
 }

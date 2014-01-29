@@ -37,12 +37,12 @@ def register_service(auth, ip_addr, next_auth):
 class CircuitStateWatcher():
     def __init__(self, zookeeperHosts='localhost:2181'):
         # might need to handle exceptions here
-		# and try a list of zookeeper hosts
-		self.zookeeper = KazooClient(zookeeperHosts)
-		self.zookeeper.start()
+        # and try a list of zookeeper hosts
+        self.zookeeper = KazooClient(zookeeperHosts)
+        self.zookeeper.start()
 
-		# use a hashtable to store all circuit states fetched from zookeeper
-		self.circuitStates = {}
+        # use a hashtable to store all circuit states fetched from zookeeper
+        self.circuitStates = {}
         # update the circuit state dictionary
         self._getCircuitState()
 
@@ -52,56 +52,56 @@ class CircuitStateWatcher():
             next_auth = self.circuitStates[auth]['next_auth']
             register_service(auth, next_ip, next_auth)
 
-		# set watcher on root node
-		watchers.ChildrenWatch(self.zookeeper, '/circuit', self._circuitNodeWatcher)
+        # set watcher on root node
+        watchers.ChildrenWatch(self.zookeeper, '/circuit', self._circuitNodeWatcher)
 
     def _getCircuitState(self):
-		# check if zookeeper circuit state node initialized
-		if not self.zookeeper.exists('/circuit'):
-			print 'no circuit has been established in zookeeper'
-			print 'initialize empty circuit state in zookeeper'
-			self.zookeeper.create('/circuit')
+        # check if zookeeper circuit state node initialized
+        if not self.zookeeper.exists('/circuit'):
+            print 'no circuit has been established in zookeeper'
+            print 'initialize empty circuit state in zookeeper'
+            self.zookeeper.create('/circuit')
 
-		# get circuit states
-		authenticators = self.zookeeper.get_children('/circuit')
+        # get circuit states
+        authenticators = self.zookeeper.get_children('/circuit')
 
-		for authenticator in authenticators:
+        for authenticator in authenticators:
             # transaction guarantees that
             # if /circuit/authenticator exists
             # then all three its children exist
 
             # get
             # return type is a tuple
-			next_ip = self.zookeeper.get('/circuit/{0}/next_ip'.format(authenticator))
-			next_ips = self.zookeeper.get('/circuit/{0}/next_ips'.format(authenticator))
-			next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(authenticator))
+            next_ip = self.zookeeper.get('/circuit/{0}/next_ip'.format(authenticator))
+            next_ips = self.zookeeper.get('/circuit/{0}/next_ips'.format(authenticator))
+            next_auth = self.zookeeper.get('/circuit/{0}/next_auth'.format(authenticator))
 
-			# set watchers
-			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ip'.format(authenticator), self._nextIpWatcher)
-			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ips'.format(authenticator), self._nextIpsWatcher)
-			watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_auth'.format(authenticator), self._nextAuthWatcher)
+            # set watchers
+            watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ip'.format(authenticator), self._nextIpWatcher)
+            watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_ips'.format(authenticator), self._nextIpsWatcher)
+            watchers.DataWatch(self.zookeeper, '/circuit/{0}/next_auth'.format(authenticator), self._nextAuthWatcher)
 
-			self.circuitStates[authenticator] = dict([
-			                                        ('next_ip', next_ip[0]),
-			                                        ('next_ips', next_ips[0]),
-			                                        ('next_auth', next_auth[0])
-			                                        ])
+            self.circuitStates[authenticator] = dict([
+                                                    ('next_ip', next_ip[0]),
+                                                    ('next_ips', next_ips[0]),
+                                                    ('next_auth', next_auth[0])
+                                                    ])
 
-		print self.circuitStates
+        print self.circuitStates
 
 
     def _circuitNodeWatcher(self, children):
-    	print '/circuit children updates'
-    	print 'children = ' + str(children)
+        print '/circuit children updates'
+        print 'children = ' + str(children)
         return
 
     def _nextIpWatcher(self, new_next_ip, stat, event):
         if event is None:
             return
 
-    	# new_next_ip is the new data value
-    	# stat is ZnodeStat
-    	# event is WatchedEvent(type='CHANGED', state='CONNECTED', path=u'/circuit/(auth)/next_ip')
+        # new_next_ip is the new data value
+        # stat is ZnodeStat
+        # event is WatchedEvent(type='CHANGED', state='CONNECTED', path=u'/circuit/(auth)/next_ip')
         print 'next_ip has been changed in zookeeper'
 
         # find out the auth and old_next_ip

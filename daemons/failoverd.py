@@ -76,6 +76,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
         next_req.should_forward = True
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.settimeout(5)
         try:
             sock.connect((next_ip, PORT))
@@ -99,6 +100,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
                 print "checking " + ip
                 sys.stdout.flush()
                 ping_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                ping_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 ping_sock.settimeout(5)
                 try:
                     ping_sock.connect((ip, PORT))

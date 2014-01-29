@@ -40,7 +40,7 @@ static int sock;
 
 static int sock_backchannel;
 
-int trigger_failover(char *hostname, int portno, unsigned long long auth);
+int trigger_failover(char *next_hop, int portno, unsigned long long auth);
 
 void signal_handler(int sig)
 {
@@ -132,7 +132,7 @@ int client(char *ip) {
         ret = connect_sv(sock, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
 
 	if (ret < 0) {
-		fprintf(stderr, "connect: %s\n",
+		fprintf(stderr, "connect failed here: %s\n",
 			strerror_sv(errno));
 		return -1;
 	}
@@ -177,7 +177,7 @@ int client(char *ip) {
                         sleep(120);
                 }
                 else {
-                        //printf("Response from server: %s\n", rbuf);
+                        printf("Response from server: %s\n", rbuf);
 
                         if (strcmp(sbuf, "quit") == 0)
                                 break;
@@ -204,16 +204,16 @@ int main(int argc, char **argv)
         //sigaction(SIGTERM, &action, 0);
 	//sigaction(SIGHUP, &action, 0);
 	//sigaction(SIGINT, &action, 0);
-        if (argc != 6) {
-                printf("Usage: udp_taas_client local_ip local_port service_id isp failover_timeout\n");
+        if (argc != 7) {
+                printf("Usage: udp_taas_client local_ip local_port service_id isp failover_timeout taas_auth\n");
                 exit(0);
         }
         local_ip = argv[1];
         local_port = atoi(argv[2]);
         service_id = atoi(argv[3]);
         isp = argv[4];
-        taas = service_id;
         failover_timeout = atoi(argv[5]);
+        taas = atoi(argv[6]);
 
         ret = client(argv[1]);
 

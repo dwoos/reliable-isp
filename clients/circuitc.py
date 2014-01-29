@@ -1,35 +1,40 @@
 import sys
 import time
 import socket
-import subprocess
+import os
 import messages_pb2 as pb
 from kazoo.client import KazooClient
 from kazoo.recipe import watchers
 from telnetlib import Telnet
 
-def get_my_ip():
-    import subprocess
-    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
+#def get_my_ip():
+#    import netifaces as ni
+#    return ni.ifaddresses('eth7')[2][0]['addr']
+#
+#try:
+#    servd_conn = Telnet(get_my_ip(), 9999)
+#    servd_conn.read_until('help\n')
+#except socket.error:
+#    print "Local servd not running, so we won't be able to get service info"
+#
+#def get_local_service_table():
+#    servd_conn.write('s\r\n')
+#    # put a delay in
+#    servd_conn.read_some()
+#    servd_conn.write('h\r\n')
+#    all_service_lines = servd_conn.read_until('service table\n').split('\n')[3:-7]
+#    all_service_entries = [filter(None, line.split(' ')) for line in all_service_lines]
+#    taas_entries = [entry for entry in all_service_entries if entry[-2] not in ('0', 'none')]
+#    return {entry[-2]: entry[-1] for entry in taas_entries}
 
-try:
-    servd_conn = Telnet(get_my_ip(), 9999)
-    servd_conn.read_until('help\n')
-except socket.error:
-    print "Local servd not running, so we won't be able to get service info"
-
-def get_local_service_table():
-    servd_conn.write('s\r\n')
-    # put a delay in
-    servd_conn.read_some()
-    servd_conn.write('h\r\n')
-    all_service_lines = servd_conn.read_until('service table\n').split('\n')[3:-7]
-    all_service_entries = [filter(None, line.split(' ')) for line in all_service_lines]
-    taas_entries = [entry for entry in all_service_entries if entry[-2] not in ('0', 'none')]
-    return {entry[-2]: entry[-1] for entry in taas_entries}
+# delete default forwarding rules
+os.system('~/taas/src/tools/servicetool del 0:0 127.0.0.1')
+os.system('~/taas/src/tools/servicetool del 0:0 128.208.6.255')
+os.system('~/taas/src/tools/servicetool del 0:0 128.95.1.120')
 
 def register_service(auth, ip_addr):
-    return subprocess.call(['/taas/src/tools/servicetool', 'add', str(auth),
-                            str(ip_addr), 'taas', str(auth)])
+    # use a catch all rule 0:0
+    return os.system("~/taas/src/tools/servicetool add 0:0 {0} taas {1}".format(ip_addr, str(auth)))
 
 
 # argv format to circuitc.py

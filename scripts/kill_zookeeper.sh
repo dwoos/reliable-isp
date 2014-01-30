@@ -8,7 +8,7 @@ case $(hostname) in
     *) exit ;;
 esac
 
-IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | cut -c2-13)
+IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | tr -d '()')
 
 echo $IP
 

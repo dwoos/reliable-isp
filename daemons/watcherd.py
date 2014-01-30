@@ -16,7 +16,7 @@ try:
     servd_conn = Telnet(sys.argv[2], 9999)
     servd_conn.read_until('help\n')
 except socket.error:
-    #print "Local servd not running, so we won't be able to get service info"
+    print "Local servd not running, so we won't be able to get service info"
 
 def get_local_service_table():
     # get a dictionary of

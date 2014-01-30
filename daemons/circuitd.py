@@ -68,7 +68,7 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
 
         else:
             #print "invalid client id"
-        self.request.close()
+            self.request.close()
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     # Ctrl-C will cleanly kill all spawned threads

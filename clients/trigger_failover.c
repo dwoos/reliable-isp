@@ -29,9 +29,9 @@
  * error - wrapper for perror
  */
 #define error(msg) \
-            do { perror(msg); return false; } while (0)
+            do { perror(msg); return 1; } while (0)
 
-int trigger_failover(char *next_hop, int port, unsigned long long auth) {
+int trigger_failover(char *next_hop, int port, uint32_t auth) {
     /* socket: create the socket */
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
@@ -72,10 +72,10 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     } else if (rc == 0) {
         // timeout in connect
         fprintf(stderr, "connection error, failover at first isp");
-        return false;
+        return 1;
     }
     
-    // printf("Connected to %s:%d for failover protocol\n", hostname, port);
+    printf("Connected to %s:%d for failover protocol\n", next_hop, port);
 
     char buf[BUFSIZE];
     /* construct check failover message */
@@ -86,6 +86,8 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     messages__check_failover__pack(&check_msg,buf);
 
     /* send check message */
+    printf("Ready to send check message\n");
+
     tv.tv_sec = CHECK_REQUEST_TIMEOUT;
     tv.tv_usec = 0;
     memcpy(&fdset, &master_fdset, sizeof(master_fdset));
@@ -96,10 +98,11 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     } else if (rc == 0) {
         // timeout in send check_request
         fprintf(stderr, "timeout in sending check_request, failover at first isp");
-        return false;
+        return 1;
     }
 
     /* read ack */
+    printf("Ready to read ack message\n");
     bzero(buf, BUFSIZE);
     tv.tv_sec = CHECK_ACK_TIMEOUT;
     tv.tv_usec = 0;
@@ -110,8 +113,11 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     } else if (rc == 0) {
         // timeout in send check_request
         fprintf(stderr, "fail to receive ack; failover at first isp");
-        return false;
+        return 1;
     }
+    n = read(sockfd, buf, BUFSIZE);
+
+    printf("Received ack message\n");
 
     /* construct check failover acknowledgement */
     // Unpack the message using protobuf-c.
@@ -119,7 +125,7 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     ack_msg = messages__check_failover_acknowledge__unpack(NULL, n, buf);
     if (ack_msg == NULL) {
         fprintf(stderr, "error unpacking incoming ack message\n");
-        return false;
+        return 1;
     }
 
     // failover ack message
@@ -127,7 +133,7 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     //    printf("Ack msg: auth=%" PRIu64 "\n",check_request->authenticator);  // required field
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in acknowledge message authenticator");
-        return false;
+        return 1;
     }
 
     // free the ack message
@@ -144,8 +150,9 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
         error("select");
     } else if (rc == 0) {
         fprintf(stderr, "fail to receive complete; failover fail");
-        return false;
+        return 1;
     }
+    n = read(sockfd, buf, BUFSIZE);
 
 
     /* construct failover complete */
@@ -154,7 +161,7 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
     complete_msg = messages__failover_complete__unpack(NULL, n, buf);
     if (complete_msg == NULL) {
         fprintf(stderr, "error unpacking incoming complete message\n");
-        return false;
+        return 1;
     }
 
     // failover complete message
@@ -163,16 +170,16 @@ int trigger_failover(char *next_hop, int port, unsigned long long auth) {
 
     if (check_request->authenticator != check_msg.authenticator) {
         fprintf(stderr, "error in complete message authenticator");
-        return false;
+        return 1;
     }
 
-    bool failover_ret;
+    int failover_ret;
     if (complete_msg->success) {
         printf("failover success\n");
-        failover_ret = true;
+        failover_ret = 0;
     } else {
         printf("failover failed\n");
-        failover_ret = false;
+        failover_ret = 1;
     }
     fflush(stdout);
 

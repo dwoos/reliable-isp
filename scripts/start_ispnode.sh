@@ -4,7 +4,7 @@ case $(hostname) in
     node38.washington.vicci.org) CONFIG=ISP1_EG.json ;;
 
     node28.washington.vicci.org) CONFIG=ISP2_ING.json ;;
-    node39.washington.vicci.org) CONFIG=ISP2_ING.json ;;
+    node22.washington.vicci.org) CONFIG=ISP2_ING.json ;;
     node37.washington.vicci.org) CONFIG=ISP2_ING.json ;;
     node36.princeton.vicci.org) CONFIG=ISP2_ING.json ;;
     node37.princeton.vicci.org) CONFIG=ISP2_ING.json ;;

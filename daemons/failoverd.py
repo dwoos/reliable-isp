@@ -70,16 +70,18 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
 
         # initialize ping results to be all failures = 0
         ping_results = [CHECK_FAILURE] * len(next_ips)
-
+        
+        current_next_ip_index = -1
         for i in xrange(len(next_ips)):
             ip = next_ips[i]
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.settimeout(CHECK_TIMEOUT)
 
-            print ip, PORT
             try:
                 if ip == next_ip:
+                    current_next_ip_index = i
+                    print 'set i  = ' + str(i)
                     # send recursive check
                     recursive_check_msg = RECURSIVE_CHECK + str(next_authenticator)
                     sock.sendto(recursive_check_msg, (ip, PORT))
@@ -99,12 +101,21 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
 
         print "parallel ping results = " + str(ping_results)
 
-        client_socket.sendto(CHECK_FAILURE, self.client_address)
+        if ping_results[current_next_ip_index] == PING_FAILURE:
+            # found the failure
+            print "found failure at next hop = " + next_ip
+            print "attempt to failover to an available next hop router"
+            for i in xrange(len(next_ips)):
+                if ping_results[i] == PING_SUCCESS:
+                    print 'successfully fails over to new next hop = ' + next_ips[i]
+                    zookeeper.set('/circuit/{0}/next_ip'.format(authenticator), next_ips[i])
+                    client_socket.sendto(CHECK_SUCCESS, self.client_address)
+                    return
 
-        #print ip + " seems to work! let's use it."
-        #sys.stdout.flush()
-        #zookeeper.set('/circuit/{0}/next_ip'.format(req.authenticator), ip)
-        #return self.succeed(req)
+        # none of the next_ips work
+        print 'failover fails'
+        client_socket.sendto(CHECK_FAILURE, self.client_address)
+        return
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
     # Ctrl-C will cleanly kill all spawned threads

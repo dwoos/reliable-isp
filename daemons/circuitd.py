@@ -27,19 +27,19 @@ def is_valid_client(client_id):
     return True
 
 def get_my_ip():
-#    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{print $2}' | cut -c 6-"],
-    #return subprocess.check_output(["IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | cut -c2-13)"],
+#    return subprocess.check_output(["ifconfig | grep 10.128 | awk '{#print $2}' | cut -c 6-"],
+    #return subprocess.check_output(["IP=$(ping $HOSTNAME -c 1 | head -1 | awk '{#print $3}' | cut -c2-13)"],
      #                              shell=True).strip()
     return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
 
 class CircuitHandler(SocketServer.BaseRequestHandler):
     def handle(self):
-        print 'Creating circuit'
+        #print 'Creating circuit'
         # self.request is the client connection
         data = self.request.recv(1024)  # clip input at 1Kb
         cr = pb.CreateCircuit()
         cr.ParseFromString(data)
-        print cr
+        #print cr
         if (is_valid_client(cr.client_id)):
 
             # store circuit state in zookeeper
@@ -64,10 +64,10 @@ class CircuitHandler(SocketServer.BaseRequestHandler):
             # send response to create circuit request from client
             self.request.send(response.SerializeToString())
 
-            print "circuit created"
+            #print "circuit created"
 
         else:
-            print "invalid client id"
+            #print "invalid client id"
         self.request.close()
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -80,7 +80,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == "__main__":
-    print "Starting circuit server"
+    #print "Starting circuit server"
     server = SimpleServer((get_my_ip(), 3456), CircuitHandler)
     # terminate with Ctrl-C
     try:

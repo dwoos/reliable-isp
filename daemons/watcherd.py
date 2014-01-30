@@ -16,7 +16,7 @@ try:
     servd_conn = Telnet(sys.argv[2], 9999)
     servd_conn.read_until('help\n')
 except socket.error:
-    print "Local servd not running, so we won't be able to get service info"
+    #print "Local servd not running, so we won't be able to get service info"
 
 def get_local_service_table():
     # get a dictionary of
@@ -58,8 +58,8 @@ class CircuitStateWatcher():
     def _getCircuitState(self):
         # check if zookeeper circuit state node initialized
         if not self.zookeeper.exists('/circuit'):
-            print 'no circuit has been established in zookeeper'
-            print 'initialize empty circuit state in zookeeper'
+            #print 'no circuit has been established in zookeeper'
+            #print 'initialize empty circuit state in zookeeper'
             self.zookeeper.create('/circuit')
 
         # get circuit states
@@ -86,12 +86,12 @@ class CircuitStateWatcher():
                                                     ('next_ips', next_ips),
                                                     ('next_auth', next_auth)
                                                     ])
-        print self.circuitStates
+        #print self.circuitStates
 
 
     def _circuitNodeWatcher(self, children):
-        print '/circuit children updates'
-        print 'children = ' + str(children)
+        #print '/circuit children updates'
+        #print 'children = ' + str(children)
         for auth in children:
             if auth not in self.circuitStates:
                 # return type is a tuple
@@ -120,7 +120,7 @@ class CircuitStateWatcher():
         # new_next_ip is the new data value
         # stat is ZnodeStat
         # event is WatchedEvent(type='CHANGED', state='CONNECTED', path=u'/circuit/(auth)/next_ip')
-        print 'next_ip has been changed in zookeeper'
+        #print 'next_ip has been changed in zookeeper'
 
         # find out the auth and old_next_ip
         auth = event.path.split('/')[2]
@@ -140,11 +140,11 @@ class CircuitStateWatcher():
         return
 
     def _nextIpsWatcher(self, data, stat, event):
-        # print 'next_ips has been changed or created in zookeeper'
+        # #print 'next_ips has been changed or created in zookeeper'
         return
 
     def _nextAuthWatcher(self, data, stat, event):
-        print 'next_auth has been changed or created in zookeeper'
+        #print 'next_auth has been changed or created in zookeeper'
         return
 
     def serverForever(self):

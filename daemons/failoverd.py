@@ -32,7 +32,7 @@ def get_my_ip():
 
 class FailoverHandler(SocketServer.BaseRequestHandler):
     def handle(self):
-        print "Received failover check request"
+        #print "Received failover check request"
         sys.stdout.flush()
 
         # determine check message type
@@ -47,16 +47,14 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
 
         # now check for failure at the next hop
         authenticator = int(data[1:])
-        print authenticator
         next_authenticator = int(zookeeper.get('/circuit/{0}/next_auth'.format(authenticator))[0])
-        print next_authenticator
 
         # return CHECK_SUCCESS if we are at last hop ISP
 
         # we arbitrarily decide that service id < 10000 in our experiments
         # this is a hack, need better way to detect that we are at the last hop ISP
         if next_authenticator < 10000:
-            print "we're the last hop, so we can't check anymore. succeeding"
+            #print "we're the last hop, so we can't check anymore. succeeding"
             sys.stdout.flush()
             client_socket.sendto(CHECK_SUCCESS, self.client_address)
             return
@@ -65,7 +63,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
         next_ip = zookeeper.get('/circuit/{0}/next_ip'.format(authenticator))[0]
         next_ips = zookeeper.get('/circuit/{0}/next_ips'.format(authenticator))[0].split(',')
 
-        print "parallel ping " + str(next_ips)
+        #print "parallel ping " + str(next_ips)
         sys.stdout.flush()
 
         # initialize ping results to be all failures = 0
@@ -81,39 +79,38 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
             try:
                 if ip == next_ip:
                     current_next_ip_index = i
-                    print 'set i  = ' + str(i)
                     # send recursive check
                     recursive_check_msg = RECURSIVE_CHECK + str(next_authenticator)
                     sock.sendto(recursive_check_msg, (ip, PORT))
                     received = sock.recv(1024)
-                    print "receive from recursive check = " + received
+                    #print "receive from recursive check = " + received
                 else:
                     # send recursive check
                     non_recursive_check_msg = NON_RECURSIVE_CHECK
                     sock.sendto(non_recursive_check_msg, (ip, PORT))
                     received = sock.recv(1024)
-                    print "receive from non_recursive check = " + received
+                    #print "receive from non_recursive check = " + received
                 # update ping results
                 ping_results[i] = received
             except socket.timeout:
-                print "timed out on pinging " + ip
+                #print "timed out on pinging " + ip
                 ping_results[i] = CHECK_FAILURE
 
-        print "parallel ping results = " + str(ping_results)
+        #print "parallel ping results = " + str(ping_results)
 
         if ping_results[current_next_ip_index] == PING_FAILURE:
             # found the failure
-            print "found failure at next hop = " + next_ip
-            print "attempt to failover to an available next hop router"
+            #print "found failure at next hop = " + next_ip
+            #print "attempt to failover to an available next hop router"
             for i in xrange(len(next_ips)):
                 if ping_results[i] == PING_SUCCESS:
-                    print 'successfully fails over to new next hop = ' + next_ips[i]
+                    #print 'successfully fails over to new next hop = ' + next_ips[i]
                     zookeeper.set('/circuit/{0}/next_ip'.format(authenticator), next_ips[i])
                     client_socket.sendto(CHECK_SUCCESS, self.client_address)
                     return
 
         # none of the next_ips work
-        print 'failover fails'
+        #print 'failover fails'
         client_socket.sendto(CHECK_FAILURE, self.client_address)
         return
 

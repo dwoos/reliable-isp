@@ -8,7 +8,8 @@ from kazoo.client import KazooClient
 import messages_pb2 as pb
 import subprocess
 
-ACK_TIMEOUT = 5
+ACK_TIMEOUT = 2
+COMPLETE_TIMEOUT = 5
 
 PORT = 3457
 
@@ -77,7 +78,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.settimeout(5)
+        sock.settimeout(ACK_TIMEOUT)
         try:
             sock.connect((next_ip, PORT))
             sock.send(next_req.SerializeToString())
@@ -101,7 +102,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
                 sys.stdout.flush()
                 ping_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 ping_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                ping_sock.settimeout(5)
+                ping_sock.settimeout(ACK_TIMEOUT)
                 try:
                     ping_sock.connect((ip, PORT))
                     ping_sock.send(ping_req_data)
@@ -131,7 +132,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
         else:
             # wait for complete, then return to client
             try:
-                sock.settimeout(10)
+                sock.settimeout(COMPLETE_TIMEOUT)
                 data = sock.recv(1024)
                 sock.close()
                 complete = pb.FailoverComplete()

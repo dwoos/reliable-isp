@@ -28,19 +28,18 @@
 #include <sys/time.h>
 
 #define FAILOVER_PORT 3457
+#define FAILOVER_TIMEOUT 5
 
 static char *local_ip;
 static int local_port;
-static int service_id;
-static char *isp;
-static unsigned long long taas;
-static int failover_timeout;
-
 static int sock;
-
 static int sock_backchannel;
 
-int trigger_failover(char *next_hop, int portno, unsigned long long auth);
+static struct timeval tt1, tt2;
+static double elapsed_time_AS_failover = 0;
+static int measure_AS_failover = 0;
+
+int trigger_failover(char *next_hop, int port_no, uint32_t auth);
 
 void signal_handler(int sig)
 {
@@ -51,7 +50,6 @@ void signal_handler(int sig)
 int set_reuse_ok(int soc)
 {
 	int option = 1;
-
 	if (setsockopt(soc, SOL_SOCKET, SO_REUSEADDR,
                        &option, sizeof(option)) < 0) {
 		fprintf(stderr, "proxy setsockopt error");
@@ -62,10 +60,8 @@ int set_reuse_ok(int soc)
 
 int set_timeout(int s) {
         struct timeval tv;
-
-        tv.tv_sec = failover_timeout;
+        tv.tv_sec = FAILOVER_TIMEOUT;
         tv.tv_usec = 0;
-
         if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,
                        sizeof(struct timeval)) < 0) {
                 printf("set timeout failed\n");
@@ -74,9 +70,9 @@ int set_timeout(int s) {
         return 0;
 }
 
-int client(char *ip) {
+int client(char *local_ip, int service_id, char* next_hop, uint32_t taas) {
 	struct sockaddr_sv srvaddr;
-	struct sockaddr_sv cliaddr;
+	//struct sockaddr_sv cliaddr;
         struct sockaddr_in myaddr;
         struct sockaddr_in dummyaddr;
         int dummysize;
@@ -96,7 +92,7 @@ int client(char *ip) {
         set_timeout(sock_backchannel);
         memset((char *)&myaddr, 0, sizeof(myaddr));
         myaddr.sin_family = AF_INET;
-        inet_aton(ip, &myaddr.sin_addr);
+        inet_aton(local_ip, &myaddr.sin_addr);
         myaddr.sin_port = htons(local_port);
 
         bind(sock_backchannel, (struct sockaddr *)&myaddr, sizeof(myaddr));
@@ -106,19 +102,18 @@ int client(char *ip) {
 	srvaddr.sv_srvid.s_sid32[0] = htonl(service_id);
 
 	sock = socket_sv(AF_SERVAL, SOCK_DGRAM, SERVAL_PROTO_UDP);
-
-
-        if (sock == -1) {
-                fprintf(stderr, "socket: %s\n",
-                        strerror_sv(errno));
-                return -1;
-        }
+    if (sock == -1) {
+            fprintf(stderr, "socket: %s\n",
+                    strerror_sv(errno));
+            return -1;
+    }
 
 	set_reuse_ok(sock);
 
+    /*
 	bzero(&cliaddr, sizeof(cliaddr));
 	cliaddr.sv_family = AF_SERVAL;
-	cliaddr.sv_srvid.s_sid32[0] = htonl(local_port);
+	cliaddr.sv_srvid.s_sid32[0] = htonl(taas);
 
         ret = bind_sv(sock, (struct sockaddr *) &cliaddr, sizeof(cliaddr));
 
@@ -127,8 +122,8 @@ int client(char *ip) {
                         strerror_sv(errno));
 		return -1;
 	}
-
-
+    */
+        /* connect */
         ret = connect_sv(sock, (struct sockaddr *)&srvaddr, sizeof(srvaddr));
 
 	if (ret < 0) {
@@ -140,10 +135,12 @@ int client(char *ip) {
 	printf("connected\n");
         fflush(stdout);
         // hack around race condition
-        sleep(10);
+        sleep(1);
 
+    struct timeval t1, t2;
+    double elapsed_time;
 	while (1) {
-                sprintf(sbuf, "ping %s %d", ip, local_port);
+                sprintf(sbuf, "ping %s %d", local_ip, local_port);
 		//printf("client: sending \"%s\" to service ID %s\n",
                 //sbuf, service_id_to_str(&srvaddr.sv_srvid));
 
@@ -155,6 +152,10 @@ int client(char *ip) {
                         break;
 		}
 
+        /* if start of 2nd client, wait for server to respond */
+        if (measure_AS_failover == 1) {
+            // sleep(1);
+        }
 		ret = recvfrom(sock_backchannel, rbuf, N, 0, (struct sockaddr *)&dummyaddr, &dummysize);
 		rbuf[ret] = 0;
 
@@ -165,31 +166,50 @@ int client(char *ip) {
                 else if (ret < 0) {
                         printf("failure detected!\n");
                         fflush(stdout);
-                        struct timeval t1, t2;
-                        double elapsed_time;
+                        
+                        /* start of AS-level failover measurement */
+                        if (measure_AS_failover == 0) {
+                            gettimeofday(&tt1, NULL);
+                            /* notify next client that we are measuring AS_failover time */
+                            measure_AS_failover = 1;
+                        }
+
                         gettimeofday(&t1, NULL);
-                        trigger_failover(isp, FAILOVER_PORT, taas);
-                        gettimeofday(&t2, NULL);
-                        elapsed_time = (t2.tv_sec - t1.tv_sec) * 1000.0;
-                        elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
-                        printf("FAILOVER IN %f\n", elapsed_time);
-                        fflush(stdout);
-                        sleep(120);
+                        // if failover succeed record time
+                        if (trigger_failover(next_hop, FAILOVER_PORT, taas) == 0) {
+                            gettimeofday(&t2, NULL);
+                            elapsed_time = (t2.tv_sec - t1.tv_sec) * 1000.0;
+                            elapsed_time += (t2.tv_usec - t1.tv_usec) / 1000.0;
+                            printf("FAILOVER IN %f ms\n", elapsed_time);
+                            fflush(stdout);
+                            sleep(2);
+                        } else {
+                            printf("FAILOVER failed\n");
+                            fflush(stdout);
+                            /* close socket */
+                            if (close_sv(sock) < 0) {
+                                fprintf(stderr, "close: %s\n", strerror_sv(errno));
+                                return ret;
+                            }
+                            return 1;
+                        }
                 }
                 else {
-                        printf("Response from server: %s\n", rbuf);
-
-                        if (strcmp(sbuf, "quit") == 0)
-                                break;
+                        if (measure_AS_failover == 1) {
+                            gettimeofday(&tt2, NULL);
+                            elapsed_time_AS_failover = (tt2.tv_sec - tt1.tv_sec) * 1000.0;
+                            elapsed_time_AS_failover += (tt2.tv_usec - tt1.tv_usec) / 1000.0;
+                            printf("AS LEVEL FAILOVER IN %f ms\n", elapsed_time_AS_failover);
+                            // need to manually shut down client and take the first value
+                            //measure_AS_failover = 0;
+                        }
+                        //printf("Response from server: %s\n", rbuf);
+                        //if (strcmp(sbuf, "quit") == 0)
+                          //      break;
                 }
-                sleep(1);
+                //sleep(1);
 	}
 
-	if (close_sv(sock) < 0)
-		fprintf(stderr, "close: %s\n",
-                        strerror_sv(errno));
-
-        return ret;
 }
 
 int main(int argc, char **argv)
@@ -204,18 +224,21 @@ int main(int argc, char **argv)
         //sigaction(SIGTERM, &action, 0);
 	//sigaction(SIGHUP, &action, 0);
 	//sigaction(SIGINT, &action, 0);
-        if (argc != 7) {
-                printf("Usage: udp_taas_client local_ip local_port service_id isp failover_timeout taas_auth\n");
+        if (argc != 9) {
+        printf("Usage: udp_taas_client local_ip local_port service_id_1 service_id_2 isp1 isp2 taas_auth_1 taas_auth_2 \n");
                 exit(0);
         }
         local_ip = argv[1];
         local_port = atoi(argv[2]);
-        service_id = atoi(argv[3]);
-        isp = argv[4];
-        failover_timeout = atoi(argv[5]);
-        taas = atoi(argv[6]);
+        int service_id_1 = atoi(argv[3]);
+        int service_id_2 = atoi(argv[4]);
+        char *isp1 = argv[5];
+        char *isp2 = argv[6];
+        uint32_t taas_1 = atoi(argv[7]);
+        uint32_t taas_2 = atoi(argv[8]);
 
-        ret = client(argv[1]);
+        ret = client(local_ip, service_id_1, isp1, taas_1);
+        ret = client(local_ip, service_id_2, isp2, taas_2);
 
         printf("client done..\n");
 

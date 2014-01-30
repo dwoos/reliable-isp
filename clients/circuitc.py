@@ -30,16 +30,18 @@ from telnetlib import Telnet
 # delete default forwarding rules
 os.system('~/taas/src/tools/servicetool del 0:0 127.0.0.1')
 os.system('~/taas/src/tools/servicetool del 0:0 128.208.6.255')
-os.system('~/taas/src/tools/servicetool del 0:0 128.95.1.120')
+#os.system('~/taas/src/tools/servicetool del 0:0 128.95.1.120')
 
-def register_service(auth, ip_addr):
+def register_service_locally(server_srv_id, auth, ip_addr):
     # use a catch all rule 0:0
-    return os.system("~/taas/src/tools/servicetool add 0:0 {0} taas {1}".format(ip_addr, str(auth)))
+    return os.system("~/taas/src/tools/servicetool add {0} {1} taas {2}".format(server_srv_id, ip_addr, str(auth)))
+    #return os.system("~/taas/src/tools/servicetool add 0:0 {0} taas {1}".format(ip_addr, str(auth)))
 
 
 # argv format to circuitc.py
 # python circuitc.py first_isp middle_isp last_isp the_other_endhost server_service_id
 
+server_service_id = sys.argv[-1]
 # need to establish circuit in the REVERSE order
 # from the last isp to the first isp
 # in order to obtain the next_hop_authenticator
@@ -88,4 +90,4 @@ for ip in ips:
 print next_hop_authenticator
 
 # populate the client's own Serval service table
-register_service(next_hop_authenticator, next_hop_ips[0])
+register_service_locally(server_service_id, next_hop_authenticator, next_hop_ips[0])

@@ -10,7 +10,7 @@ case $(hostname) in
     node37.princeton.vicci.org) CONFIG=ISP2_ING.json ;;
     node38.princeton.vicci.org) CONFIG=ISP2_ING.json ;;
 
-    node15.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
+    node41.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
     node38.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
     node35.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
 

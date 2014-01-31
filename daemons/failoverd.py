@@ -9,8 +9,7 @@ import subprocess
 import threading
 
 
-CHECK_TIMEOUT = 2
-COMPLETE_TIMEOUT = 5
+CHECK_TIMEOUT = 0.1
 
 PORT = 3457
 

@@ -5,8 +5,9 @@ import socket
 import json
 import SocketServer
 from kazoo.client import KazooClient
-import messages_pb2 as pb
 import subprocess
+import threading
+
 
 CHECK_TIMEOUT = 2
 COMPLETE_TIMEOUT = 5
@@ -21,6 +22,40 @@ PING_SUCCESS = '1'
 
 CHECK_FAILURE = '0'
 CHECK_SUCCESS = '1'
+
+class PingNextHopThread(threading.Thread):
+    def __init__(self, ip, port, next_authenticator, isRecursive):
+        threading.Thread.__init__(self)
+        self.ip = ip
+        self.port = port
+        self.next_authenticator = next_authenticator
+        self.isRecursive = isRecursive
+        self.ping_response = 'x'
+    def run(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.settimeout(CHECK_TIMEOUT)
+        try:
+            if self.isRecursive:
+                # send recursive check
+                recursive_check_msg = RECURSIVE_CHECK + str(self.next_authenticator)
+                sock.sendto(recursive_check_msg, (self.ip, self.port))
+                received = sock.recv(1024)
+                #print "receive from recursive check = " + received
+            else:
+                # send recursive check
+                non_recursive_check_msg = NON_RECURSIVE_CHECK
+                sock.sendto(non_recursive_check_msg, (self.ip, self.port))
+                received = sock.recv(1024)
+                #print "receive from non_recursive check = " + received
+            # update ping results
+            self.ping_response = received
+        except socket.timeout:
+            #print "timed out on pinging " + self.ip
+            self.ping_response = CHECK_FAILURE
+        
+
+
 
 config = json.loads(open(sys.argv[1]).read())
 
@@ -69,34 +104,28 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
         # initialize ping results to be all failures = 0
         ping_results = [CHECK_FAILURE] * len(next_ips)
         
+        # spawn a thread for each ping
+        ping_threads = []
         current_next_ip_index = -1
         for i in xrange(len(next_ips)):
             ip = next_ips[i]
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.settimeout(CHECK_TIMEOUT)
+            if ip == next_ip:
+                current_next_ip_index = i
+                t = PingNextHopThread(ip, PORT, next_authenticator, True)
+                t.start()
+                ping_threads.append(t)
+            else:
+                t = PingNextHopThread(ip, PORT, next_authenticator, False)
+                t.start()
+                ping_threads.append(t)
 
-            try:
-                if ip == next_ip:
-                    current_next_ip_index = i
-                    # send recursive check
-                    recursive_check_msg = RECURSIVE_CHECK + str(next_authenticator)
-                    sock.sendto(recursive_check_msg, (ip, PORT))
-                    received = sock.recv(1024)
-                    #print "receive from recursive check = " + received
-                else:
-                    # send recursive check
-                    non_recursive_check_msg = NON_RECURSIVE_CHECK
-                    sock.sendto(non_recursive_check_msg, (ip, PORT))
-                    received = sock.recv(1024)
-                    #print "receive from non_recursive check = " + received
-                # update ping results
-                ping_results[i] = received
-            except socket.timeout:
-                #print "timed out on pinging " + ip
-                ping_results[i] = CHECK_FAILURE
+        # join and gather response from all pings
+        for i in xrange(len(next_ips)):
+            t = ping_threads[i]
+            t.join()
+            ping_results[i] = t.ping_response
 
-        #print "parallel ping results = " + str(ping_results)
+        print "parallel ping results = " + str(ping_results)
 
         if ping_results[current_next_ip_index] == PING_FAILURE:
             # found the failure

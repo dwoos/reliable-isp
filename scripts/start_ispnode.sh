@@ -12,11 +12,11 @@ case $(hostname) in
 
     node41.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
     node38.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
-    node35.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
+    node42.stanford.vicci.org) CONFIG=ISP2_EG.json ;;
 
     node54.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
     node50.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
-    node45.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
+    node63.stanford.vicci.org) CONFIG=ISP3_ING.json ;;
 
     *) exit ;;
 esac

@@ -137,8 +137,15 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
             for i in xrange(len(next_ips)):
                 if ping_results[i] == PING_SUCCESS:
                     #print 'successfully fails over to new next hop = ' + next_ips[i]
-                    zookeeper.set('/circuit/{0}/next_ip'.format(authenticator), next_ips[i])
+                    # delete the old service table entry
+                    subprocess.call(['/taas/src/tools/servicetool', 'del', 
+                                    str(authenticator), str(next_ip), 'taas', str(next_authenticator)])
+                    # fill in updated next_ip in service table
+                    subprocess.call(['/taas/src/tools/servicetool', 'add', 
+                                    str(authenticator), str(next_ips[i]), 'taas', str(next_authenticator)])
                     client_socket.sendto(CHECK_SUCCESS, self.client_address)
+                    # call zookeeper
+                    zookeeper.set('/circuit/{0}/next_ip'.format(authenticator), next_ips[i])
                     return
 
         # none of the next_ips work

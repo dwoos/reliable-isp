@@ -7,11 +7,8 @@ import SocketServer
 from kazoo.client import KazooClient
 import subprocess
 import threading
+import os
 
-
-CHECK_TIMEOUT = 0.1
-
-PORT = 3457
 
 NON_RECURSIVE_CHECK = '0'
 RECURSIVE_CHECK = '1'
@@ -21,6 +18,20 @@ PING_SUCCESS = '1'
 
 CHECK_FAILURE = '0'
 CHECK_SUCCESS = '1'
+
+my_ip = str(os.system("ping $HOSTNAME -c 1 | head -1 | awk '{print $3}' | tr -d '()'"))
+PORT = 3457
+
+#if my_ip.startswith('128.95'):
+#    CHECK_TIMEOUT = 0.001
+#elif my_ip.startswith('171.67'):
+CHECK_TIMEOUT = 0.002
+
+# initialize zookeeper client
+config = json.loads(open(sys.argv[1]).read())
+
+zookeeper = KazooClient(hosts=','.join(config['zookeeper']))
+zookeeper.start()
 
 class PingNextHopThread(threading.Thread):
     def __init__(self, ip, port, next_authenticator, isRecursive):
@@ -54,20 +65,13 @@ class PingNextHopThread(threading.Thread):
             self.ping_response = CHECK_FAILURE
         
 
-
-
-config = json.loads(open(sys.argv[1]).read())
-
-zookeeper = KazooClient(hosts=','.join(config['zookeeper']))
-zookeeper.start()
-
-def get_my_ip():
-    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
+#def get_my_ip():
+#    return subprocess.check_output(['curl', '-s', 'http://ipecho.net/plain'])
 
 class FailoverHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         #print "Received failover check request"
-        sys.stdout.flush()
+        #sys.stdout.flush()
 
         # determine check message type
         data = self.request[0].strip('\0')
@@ -89,7 +93,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
         # this is a hack, need better way to detect that we are at the last hop ISP
         if next_authenticator < 10000:
             #print "we're the last hop, so we can't check anymore. succeeding"
-            sys.stdout.flush()
+            #sys.stdout.flush()
             client_socket.sendto(CHECK_SUCCESS, self.client_address)
             return
 
@@ -98,7 +102,7 @@ class FailoverHandler(SocketServer.BaseRequestHandler):
         next_ips = zookeeper.get('/circuit/{0}/next_ips'.format(authenticator))[0].split(',')
 
         #print "parallel ping " + str(next_ips)
-        sys.stdout.flush()
+        #sys.stdout.flush()
 
         # initialize ping results to be all failures = 0
         ping_results = [CHECK_FAILURE] * len(next_ips)
@@ -152,7 +156,7 @@ class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         SocketServer.UDPServer.__init__(self, server_address, RequestHandlerClass)
 
 if __name__ == "__main__":
-    server = SimpleServer((get_my_ip(), PORT), FailoverHandler)
+    server = SimpleServer((my_ip, PORT), FailoverHandler)
     # terminate with Ctrl-C
     try:
         print "gonna serve"
